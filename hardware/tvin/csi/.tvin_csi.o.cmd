@@ -1,0 +1,1 @@
+cmd_drivers/amlogic/../../../hardware/tvin/csi/tvin_csi.o := arm-linux-gnueabihf-ld -EL    -r -o drivers/amlogic/../../../hardware/tvin/csi/tvin_csi.o drivers/amlogic/../../../hardware/tvin/csi/csi.o drivers/amlogic/../../../hardware/tvin/csi/mipi_hw.o ; scripts/mod/modpost drivers/amlogic/../../../hardware/tvin/csi/tvin_csi.o

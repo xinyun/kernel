@@ -1,0 +1,1 @@
+cmd_drivers/amlogic/../../../hardware/amlogic/touch/built-in.o :=  rm -f drivers/amlogic/../../../hardware/amlogic/touch/built-in.o; arm-linux-gnueabihf-ar rcsD drivers/amlogic/../../../hardware/amlogic/touch/built-in.o

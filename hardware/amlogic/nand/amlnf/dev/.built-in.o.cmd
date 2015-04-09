@@ -1,0 +1,1 @@
+cmd_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/dev/built-in.o :=  arm-linux-gnueabihf-ld -EL    -r -o drivers/amlogic/../../../hardware/amlogic/nand/amlnf/dev/built-in.o drivers/amlogic/../../../hardware/amlogic/nand/amlnf/dev/amlnf_api.o ; scripts/mod/modpost drivers/amlogic/../../../hardware/amlogic/nand/amlnf/dev/built-in.o

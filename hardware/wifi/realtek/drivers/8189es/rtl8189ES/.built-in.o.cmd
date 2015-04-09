@@ -1,0 +1,1 @@
+cmd_drivers/amlogic/../../../hardware/wifi/realtek/drivers/8189es/rtl8189ES/built-in.o :=  rm -f drivers/amlogic/../../../hardware/wifi/realtek/drivers/8189es/rtl8189ES/built-in.o; arm-linux-gnueabihf-ar rcsD drivers/amlogic/../../../hardware/wifi/realtek/drivers/8189es/rtl8189ES/built-in.o

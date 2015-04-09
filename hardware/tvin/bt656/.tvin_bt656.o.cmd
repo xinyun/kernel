@@ -1,0 +1,1 @@
+cmd_drivers/amlogic/../../../hardware/tvin/bt656/tvin_bt656.o := arm-linux-gnueabihf-ld -EL    -r -o drivers/amlogic/../../../hardware/tvin/bt656/tvin_bt656.o drivers/amlogic/../../../hardware/tvin/bt656/bt656_601_in.o ; scripts/mod/modpost drivers/amlogic/../../../hardware/tvin/bt656/tvin_bt656.o

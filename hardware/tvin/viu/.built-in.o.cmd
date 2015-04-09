@@ -1,0 +1,1 @@
+cmd_drivers/amlogic/../../../hardware/tvin/viu/built-in.o :=  arm-linux-gnueabihf-ld -EL    -r -o drivers/amlogic/../../../hardware/tvin/viu/built-in.o drivers/amlogic/../../../hardware/tvin/viu/tvin_viuin.o ; scripts/mod/modpost drivers/amlogic/../../../hardware/tvin/viu/built-in.o

@@ -1,0 +1,1 @@
+cmd_drivers/amlogic/../../../hardware/wifi/broadcom/drivers/ap6xxx/broadcm_40181/built-in.o :=  rm -f drivers/amlogic/../../../hardware/wifi/broadcom/drivers/ap6xxx/broadcm_40181/built-in.o; arm-linux-gnueabihf-ar rcsD drivers/amlogic/../../../hardware/wifi/broadcom/drivers/ap6xxx/broadcm_40181/built-in.o
