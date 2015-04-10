@@ -122,15 +122,25 @@ vdin_screen_source::vdin_screen_source()
                   : mCameraHandle(-1),
                     mVideoInfo(NULL)
 {
+	ALOGV("%s %d", __FUNCTION__, __LINE__);
+}
+
+int vdin_screen_source::init(){
+	ALOGV("%s %d", __FUNCTION__, __LINE__);
     mCameraHandle = open("/dev/video11", O_RDWR| O_NONBLOCK);
-    if (mCameraHandle < 0){
-        ALOGE("[%s %d] mCameraHandle:%x", __FUNCTION__, __LINE__, mCameraHandle);
+    if (mCameraHandle < 0)
+    {
+        ALOGE("[%s %d] mCameraHandle:%x [%s]", __FUNCTION__, __LINE__, mCameraHandle,strerror(errno));
+        return -1;
     }
     mVideoInfo = (struct VideoInfo *) calloc (1, sizeof (struct VideoInfo));
-    if (mVideoInfo == NULL){
+    if (mVideoInfo == NULL)
+    {
         ALOGE("[%s %d] no memory for mVideoInfo", __FUNCTION__, __LINE__);
+        close(mCameraHandle);
+        return NO_MEMORY;
     }
-    mBufferCount = 4;
+	mBufferCount = 4;
     mPixelFormat = V4L2_PIX_FMT_NV21;
     mNativeWindowPixelFormat = HAL_PIXEL_FORMAT_YCrCb_420_SP;
     mFrameWidth = 1280;
@@ -143,6 +153,7 @@ vdin_screen_source::vdin_screen_source()
     mWorkThread = NULL;
     mDataCB = NULL;
     mOpen = false;
+	return NO_ERROR;
 }
 
 vdin_screen_source::~vdin_screen_source()

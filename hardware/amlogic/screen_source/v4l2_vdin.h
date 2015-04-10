@@ -77,7 +77,7 @@ class vdin_screen_source {
     public:
         vdin_screen_source();
         ~vdin_screen_source();
-    	
+    	int init();
         int start();
         int stop();
         int pause();

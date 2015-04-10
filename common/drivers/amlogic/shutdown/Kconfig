@@ -1,0 +1,12 @@
+#support amlogic external module power control
+
+menu "Amlogic shutdown info"
+
+config AMLOGIC_SHUTDOWN
+	tristate "Amlogic shutdown info"
+	default n
+	help
+	  Amlogic shutdown info	  
+endmenu
+
+

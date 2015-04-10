@@ -379,8 +379,10 @@ struct input_keymap_entry {
 #define KEY_NEXTSONG		163
 #define KEY_PLAYPAUSE		164
 #define KEY_PREVIOUSSONG	165
-#define KEY_STOPCD		166
-#define KEY_RECORD		167
+//#define KEY_STOPCD		166
+//#define KEY_RECORD		167
+#define KEY_CHANNELUP	    166	/* Channel Increment */
+#define KEY_CHANNELDOWN  	167	/* Channel Increment */
 #define KEY_REWIND		168
 #define KEY_PHONE		169	/* Media Select Telephone */
 #define KEY_ISO			170
@@ -596,8 +598,10 @@ struct input_keymap_entry {
 #define KEY_GREEN		0x18f
 #define KEY_YELLOW		0x190
 #define KEY_BLUE		0x191
-#define KEY_CHANNELUP		0x192	/* Channel Increment */
-#define KEY_CHANNELDOWN		0x193	/* Channel Decrement */
+//#define KEY_CHANNELUP	0x192	/* Channel Increment */
+//#define KEY_CHANNELDOWN	0x193	/* Channel Decrement */
+#define KEY_STOPCD      0x192
+#define KEY_RECORD      0x192
 #define KEY_FIRST		0x194
 #define KEY_LAST		0x195	/* Recall Last */
 #define KEY_AB			0x196

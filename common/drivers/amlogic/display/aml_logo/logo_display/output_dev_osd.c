@@ -150,9 +150,6 @@ void set_osd_freescaler(int index, logo_object_t *plogo, vmode_t new_mode) {
         case VMODE_576P:
         case VMODE_720P:
         case VMODE_720P_50HZ:
-            osd_set_free_scale_axis_hw(index, 0, 0, 1279, 719);
-            osddev_update_disp_axis_hw(0, 1279, 0, 719, 0, 0, 0, index);
-            break;
         case VMODE_1080I:
         case VMODE_1080I_50HZ:
         case VMODE_1080P:
@@ -165,6 +162,8 @@ void set_osd_freescaler(int index, logo_object_t *plogo, vmode_t new_mode) {
             osd_set_free_scale_axis_hw(index, 0, 0, 1919, 1079);
             osddev_update_disp_axis_hw(0, 1919, 0, 1079, 0, 0, 0, index);
             break;
+		default:
+			break;
    }
    switch(new_mode) {
         case VMODE_480I:
@@ -196,6 +195,8 @@ void set_osd_freescaler(int index, logo_object_t *plogo, vmode_t new_mode) {
         case VMODE_4K2K_SMPTE:
             osd_set_window_axis_hw(index, 0, 0, 4095, 2159);
             break;
+		default:
+			break;
    }
    osd_free_scale_enable_hw(index, 0x10001);
    osd_enable_hw(1, index);
@@ -204,8 +205,12 @@ void set_osd_freescaler(int index, logo_object_t *plogo, vmode_t new_mode) {
 
 static int osd0_init(logo_object_t *plogo)
 {
+#if defined(CONFIG_AM_HDMI_ONLY)
 	int hpd_state = 0;
+#endif
+#if defined(CONFIG_AM_HDMI_ONLY) || (MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON8)
 	vmode_t cur_mode = plogo->para.vout_mode;
+#endif
 
 	if(plogo->para.output_dev_type==output_osd0.idx)
 	{
@@ -263,8 +268,12 @@ static int osd0_init(logo_object_t *plogo)
 }
 static int osd1_init(logo_object_t *plogo)
 {
+#if defined(CONFIG_AM_HDMI_ONLY)
 	int hpd_state = 0;
+#endif
+#if defined(CONFIG_AM_HDMI_ONLY) || (MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON8)
 	vmode_t cur_mode = plogo->para.vout_mode;
+#endif
 
 	if(plogo->para.output_dev_type==output_osd1.idx)
 	{

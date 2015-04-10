@@ -61,6 +61,7 @@
 #include <linux/hugetlb.h>
 #include <linux/sched/rt.h>
 #include <linux/sysctl.h>
+#include <linux/mm_inline.h>
 
 #include <asm/tlbflush.h>
 #include <asm/div64.h>
@@ -656,7 +657,6 @@ static void free_pcppages_bulk(struct zone *zone, int count,
 	int to_free = count;
 
 	spin_lock(&zone->lock);
-	zone->all_unreclaimable = 0;
 	zone->pages_scanned = 0;
 
 	while (to_free) {
@@ -705,7 +705,6 @@ static void free_one_page(struct zone *zone, struct page *page, int order,
 				int migratetype)
 {
 	spin_lock(&zone->lock);
-	zone->all_unreclaimable = 0;
 	zone->pages_scanned = 0;
 
 	__free_one_page(page, zone, order, migratetype);
@@ -939,7 +938,7 @@ static int fallbacks[MIGRATE_TYPES][4] = {
 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,     MIGRATE_RESERVE },
 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,     MIGRATE_RESERVE },
 #ifdef CONFIG_CMA
-	[MIGRATE_MOVABLE]     = { MIGRATE_CMA,         MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
+	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_CMA, MIGRATE_RESERVE },
 	[MIGRATE_CMA]         = { MIGRATE_RESERVE }, /* Never used */
 #else
 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE,   MIGRATE_RESERVE },
@@ -1039,7 +1038,11 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
 	int current_order;
 	struct page *page;
 	int migratetype, i;
+#ifdef CONFIG_CMA
+	int flags = start_migratetype & __GFP_BDEV;
+#endif
 
+	start_migratetype &= (~__GFP_BDEV);
 	/* Find the largest possible block of pages in the other list */
 	for (current_order = MAX_ORDER-1; current_order >= order;
 						--current_order) {
@@ -1049,7 +1052,10 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
 			/* MIGRATE_RESERVE handled later if necessary */
 			if (migratetype == MIGRATE_RESERVE)
 				break;
-
+#ifdef CONFIG_CMA
+			if(flags && migratetype == MIGRATE_CMA)
+				continue;
+#endif
 			area = &(zone->free_area[current_order]);
 			if (list_empty(&area->free_list[migratetype]))
 				continue;
@@ -1121,11 +1127,41 @@ static struct page *__rmqueue(struct zone *zone, unsigned int order,
 						int migratetype)
 {
 	struct page *page;
+	int ori_migratetype = migratetype;
+#ifdef CONFIG_CMA
+	int i = 0;
+	int tmp_migratetype = MIGRATE_RESERVE;
+	int flags = migratetype & __GFP_BDEV;
+#endif
 
+#ifdef CONFIG_CMA
+	if(flags){
+		ori_migratetype &= ~__GFP_BDEV;
+	}
+	if(ori_migratetype == MIGRATE_MOVABLE){
+		for (i = 0;; i++) {
+			tmp_migratetype = fallbacks[ori_migratetype][i];
+			if (tmp_migratetype == MIGRATE_CMA){
+				if(flags)
+					tmp_migratetype = MIGRATE_RESERVE;
+				break;
+			}
+			if (tmp_migratetype == MIGRATE_RESERVE)
+				break;
+		}
+		if (tmp_migratetype == MIGRATE_CMA){
+			page = __rmqueue_smallest(zone, order, MIGRATE_CMA);
+			if(page){
+				ori_migratetype = MIGRATE_CMA;
+				goto alloc_page_success;
+			}
+		}
+	}
+#endif
 retry_reserve:
-	page = __rmqueue_smallest(zone, order, migratetype);
+	page = __rmqueue_smallest(zone, order, ori_migratetype);
 
-	if (unlikely(!page) && migratetype != MIGRATE_RESERVE) {
+	if (unlikely(!page) && ori_migratetype != MIGRATE_RESERVE) {
 		page = __rmqueue_fallback(zone, order, migratetype);
 
 		/*
@@ -1134,12 +1170,14 @@ retry_reserve:
 		 * and we want just one call site
 		 */
 		if (!page) {
-			migratetype = MIGRATE_RESERVE;
+			ori_migratetype = MIGRATE_RESERVE;
 			goto retry_reserve;
 		}
 	}
-
-	trace_mm_page_alloc_zone_locked(page, order, migratetype);
+#ifdef CONFIG_CMA
+alloc_page_success:
+#endif
+	trace_mm_page_alloc_zone_locked(page, order, ori_migratetype);
 	return page;
 }
 
@@ -1153,7 +1191,9 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
 			int migratetype, int cold)
 {
 	int mt = migratetype, i;
-
+#ifdef CONFIG_CMA
+	mt = migratetype & (~__GFP_BDEV);
+#endif
 	spin_lock(&zone->lock);
 	for (i = 0; i < count; ++i) {
 		struct page *page = __rmqueue(zone, order, migratetype);
@@ -1176,7 +1216,11 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
 		if (IS_ENABLED(CONFIG_CMA)) {
 			mt = get_pageblock_migratetype(page);
 			if (!is_migrate_cma(mt) && !is_migrate_isolate(mt))
+#ifdef CONFIG_CMA
+				mt = migratetype & (~__GFP_BDEV);
+#else
 				mt = migratetype;
+#endif
 		}
 		set_freepage_migratetype(page, mt);
 		list = &page->lru;
@@ -1514,9 +1558,19 @@ again:
 		pcp = &this_cpu_ptr(zone->pageset)->pcp;
 		list = &pcp->lists[migratetype];
 		if (list_empty(list)) {
+#ifdef CONFIG_CMA
+			if(gfp_flags & __GFP_BDEV){
+				migratetype |= __GFP_BDEV;
+			}
+#endif
 			pcp->count += rmqueue_bulk(zone, 0,
 					pcp->batch, list,
 					migratetype, cold);
+#ifdef CONFIG_CMA
+			if(gfp_flags & __GFP_BDEV){
+				migratetype &= (~__GFP_BDEV);
+			}
+#endif
 			if (unlikely(list_empty(list)))
 				goto failed;
 		}
@@ -1525,7 +1579,22 @@ again:
 			page = list_entry(list->prev, struct page, lru);
 		else
 			page = list_entry(list->next, struct page, lru);
-
+#ifdef CONFIG_CMA
+		if(gfp_flags & __GFP_BDEV){
+			if(get_pageblock_migratetype(page) == MIGRATE_CMA){
+				spin_lock(&zone->lock);
+				migratetype |= __GFP_BDEV;
+				page = __rmqueue(zone, order, migratetype);
+				migratetype &= (~__GFP_BDEV);
+				spin_unlock(&zone->lock);
+				if (!page)
+					goto failed;
+				__mod_zone_freepage_state(zone, -(1 << order),
+							  get_pageblock_migratetype(page));
+				goto alloc_sucess;
+			}
+		}
+#endif
 		list_del(&page->lru);
 		pcp->count--;
 	} else {
@@ -1550,7 +1619,7 @@ again:
 		__mod_zone_freepage_state(zone, -(1 << order),
 					  get_pageblock_migratetype(page));
 	}
-
+alloc_sucess:
 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
 	zone_statistics(preferred_zone, zone, gfp_flags);
 	local_irq_restore(flags);
@@ -3133,7 +3202,7 @@ void show_free_areas(unsigned int filter)
 			K(zone_page_state(zone, NR_FREE_CMA_PAGES)),
 			K(zone_page_state(zone, NR_WRITEBACK_TEMP)),
 			zone->pages_scanned,
-			(zone->all_unreclaimable ? "yes" : "no")
+			(!zone_reclaimable(zone) ? "yes" : "no")
 			);
 		printk("lowmem_reserve[]:");
 		for (i = 0; i < MAX_NR_ZONES; i++)

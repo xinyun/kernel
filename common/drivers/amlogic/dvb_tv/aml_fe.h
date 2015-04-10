@@ -20,14 +20,14 @@
 #include <linux/earlysuspend.h>
 #endif
 
-#include "drivers/media/dvb-core/dvbdev.h"
-#include "drivers/media/dvb-core/demux.h"
-#include "drivers/media/dvb-core/dvb_demux.h"
-#include "drivers/media/dvb-core/dmxdev.h"
-#include "drivers/media/dvb-core/dvb_filter.h"
-#include "drivers/media/dvb-core/dvb_net.h"
-#include "drivers/media/dvb-core/dvb_ringbuffer.h"
-#include "drivers/media/dvb-core/dvb_frontend.h"
+#include "../../../drivers/media/dvb-core/dvbdev.h"
+#include "../../../drivers/media/dvb-core/demux.h"
+#include "../../../drivers/media/dvb-core/dvb_demux.h"
+#include "../../../drivers/media/dvb-core/dmxdev.h"
+#include "../../../drivers/media/dvb-core/dvb_filter.h"
+#include "../../../drivers/media/dvb-core/dvb_net.h"
+#include "../../../drivers/media/dvb-core/dvb_ringbuffer.h"
+#include "../../../drivers/media/dvb-core/dvb_frontend.h"
 #include "aml_dvb.h"
 #include "linux/videodev2.h"
 
@@ -81,7 +81,8 @@ typedef enum{
 	AM_DTV_DEMOD_ITE9133 = 6,
 	AM_DTV_DEMOD_ITE9173 = 7,
 	AM_DTV_DEMOD_DIB8096 = 8,
-	AM_DTV_DEMOD_ATBM8869 = 9
+	AM_DTV_DEMOD_ATBM8869 = 9,
+	AM_DTV_DEMOD_CXD2837 = 10
 }aml_dtv_demod_type_t;
 
 typedef enum{

@@ -891,14 +891,14 @@ static int rt5616_bst2_event(struct snd_soc_dapm_widget *w,
     return 0;
 }
 
-static int mic_bias_event(struct snd_soc_dapm_widget *w,
+/*static int mic_bias_event(struct snd_soc_dapm_widget *w,
     struct snd_kcontrol *kcontrol, int event)
 {
     struct snd_soc_codec *codec = w->codec;
     unsigned int mask = 1<<w->shift;
     snd_soc_update_bits(codec, RT5616_PWR_ANLG2, mask, mask);
     return 0;
-}
+}*/
 
 
 static const struct snd_soc_dapm_widget rt5616_dapm_widgets[] = {
@@ -909,10 +909,10 @@ static const struct snd_soc_dapm_widget rt5616_dapm_widgets[] = {
     SND_SOC_DAPM_SUPPLY("LDO", RT5616_PWR_ANLG1,
             RT5616_PWR_LDO_BIT, 0, NULL, 0),
 #ifdef POWER_ON_MICBIAS1
-//  SND_SOC_DAPM_SUPPLY("micbias1", RT5616_PWR_ANLG2,
-//          RT5616_PWR_MB1_BIT, 0, NULL, 0),
-    SND_SOC_DAPM_SUPPLY("micbias1", SND_SOC_NOPM,
-            RT5616_PWR_MB1_BIT, 0, mic_bias_event, 0),
+  SND_SOC_DAPM_SUPPLY("micbias1", RT5616_PWR_ANLG2,
+         RT5616_PWR_MB1_BIT, 0, NULL, 0),
+//    SND_SOC_DAPM_SUPPLY("micbias1", SND_SOC_NOPM,
+ //           RT5616_PWR_MB1_BIT, 0, mic_bias_event, 0),
   
 #else
     SND_SOC_DAPM_MICBIAS("micbias1", RT5616_PWR_ANLG2,
@@ -1680,7 +1680,7 @@ static int rt5616_resume(struct snd_soc_codec *codec)
 
 #define RT5616_STEREO_RATES SNDRV_PCM_RATE_8000_96000
 #define RT5616_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE | \
-            SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S8)
+            SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S8 | SNDRV_PCM_FMTBIT_S32_LE)
 
 
 struct snd_soc_dai_ops rt5616_aif_dai_ops = {
@@ -1700,7 +1700,7 @@ struct snd_soc_dai_driver rt5616_dai[] = {
         .playback = {
             .stream_name = "AIF1 Playback",
             .channels_min = 1,
-            .channels_max = 2,
+            .channels_max = 8,
             .rates = RT5616_STEREO_RATES,
             .formats = RT5616_FORMATS,
         },

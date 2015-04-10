@@ -51,6 +51,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/dma-contiguous.h>
 #include <asm/uaccess.h>
+#include <linux/clk.h>
 #if MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON6
 #include <mach/mod_gate.h>
 #include <mach/power_gate.h>
@@ -66,6 +67,7 @@
 #include "amvideocap_priv.h"
 #include "amports_priv.h"
 #include "amports_config.h"
+#include "tsync_pcr.h"
 
 #include <linux/firmware.h>
 
@@ -80,7 +82,13 @@
 u32 amstream_port_num;
 u32 amstream_buf_num;
 
+#if MESON_CPU_TYPE == MESON_CPU_TYPE_MESONG9TV
+#define NO_VDEC2_INIT 1
+#elif MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON6TVD
+#define NO_VDEC2_INIT IS_MESON_M8M2_CPU
+#endif
 extern void set_real_audio_info(void *arg);
+
 //#define DATA_DEBUG
 static int use_bufferlevelx10000=10000;
 static int reset_canuse_buferlevel(int level);
@@ -239,6 +247,8 @@ static DEFINE_MUTEX(amstream_mutex);
 atomic_t subdata_ready = ATOMIC_INIT(0);
 static int sub_type;
 static int sub_port_inited;
+int hevc_format;
+
 /* wait queue for poll */
 static wait_queue_head_t amstream_sub_wait;
 atomic_t userdata_ready = ATOMIC_INIT(0);
@@ -398,6 +408,7 @@ static void amstream_change_vbufsize(stream_port_t *port,struct stream_buf_s *pv
 
 static  void video_port_release(stream_port_t *port, struct stream_buf_s * pbuf, int release_num)
 {
+  
     switch (release_num) {
     default:
     case 0: /*release all*/
@@ -422,7 +433,8 @@ static  int video_port_init(stream_port_t *port, struct stream_buf_s * pbuf)
     }
 	
     amstream_change_vbufsize(port,pbuf);
-
+    
+   
     if (HAS_HEVC_VDEC) {
         if (port->type & PORT_TYPE_MPTS) {
             if (pbuf->type == BUF_TYPE_HEVC) {
@@ -630,6 +642,12 @@ static  int amstream_port_init(stream_port_t *port)
     stream_buf_t *psbuf = &bufs[BUF_TYPE_SUBTITLE];
     stream_buf_t *pubuf = &bufs[BUF_TYPE_USERDATA];
 
+    mutex_lock(&amstream_mutex);
+    if (port->flag & PORT_FLAG_INITED) {
+        mutex_unlock(&amstream_mutex);
+        return 0;
+    }
+
     if ((port->type & PORT_TYPE_AUDIO) && (port->flag & PORT_FLAG_AFORMAT)) {
         r = audio_port_init(port, pabuf);
         if (r < 0) {
@@ -637,6 +655,7 @@ static  int amstream_port_init(stream_port_t *port)
             goto error1;
         }
     }
+    printk(" [%s::%d]    port_type 0x%x port_flag 0x%x has_hevc 0x%x  vformat 0x%x  hevc_foramt 0x%x\n",__FUNCTION__,__LINE__,port->type,port->flag,HAS_HEVC_VDEC,port->vformat,hevc_format);
 
     if ((port->type & PORT_TYPE_VIDEO) && (port->flag & PORT_FLAG_VFORMAT)) {
         pubuf->buf_size = 0;
@@ -646,6 +665,8 @@ static  int amstream_port_init(stream_port_t *port)
 
         if (HAS_HEVC_VDEC) {
             if (port->vformat == VFORMAT_HEVC) {
+                hevc_format = 1;	
+                printk(" set HEVC buf  type \n");	
                 pvbuf = &bufs[BUF_TYPE_HEVC];
             }
         }
@@ -665,24 +686,25 @@ static  int amstream_port_init(stream_port_t *port)
         }
     }
 
-    if (port->type & PORT_TYPE_MPTS) {
-        if (HAS_HEVC_VDEC) {
-            r = tsdemux_init((port->flag & PORT_FLAG_VID) ? port->vid : 0xffff,
-                             (port->flag & PORT_FLAG_AID) ? port->aid : 0xffff,
-                             (port->flag & PORT_FLAG_SID) ? port->sid : 0xffff,
-                             port->pcrid,
-                             (port->vformat == VFORMAT_HEVC));
-        } else {
-            r = tsdemux_init((port->flag & PORT_FLAG_VID) ? port->vid : 0xffff,
-                             (port->flag & PORT_FLAG_AID) ? port->aid : 0xffff,
-                             (port->flag & PORT_FLAG_SID) ? port->sid : 0xffff,
-                             port->pcrid, 0);
-        }
-
+    if (port->type & PORT_TYPE_MPTS) { 
+	if (HAS_HEVC_VDEC) {
+	       r = tsdemux_init((port->flag & PORT_FLAG_VID) ? port->vid : 0xffff,
+	                         (port->flag & PORT_FLAG_AID) ? port->aid : 0xffff,
+	                         (port->flag & PORT_FLAG_SID) ? port->sid : 0xffff,
+	                         (port->pcr_inited == 1) ? port->pcrid : 0xffff,
+	                         (port->vformat == VFORMAT_HEVC));
+	}else{
+	        r = tsdemux_init((port->flag & PORT_FLAG_VID) ? port->vid : 0xffff,
+	                         (port->flag & PORT_FLAG_AID) ? port->aid : 0xffff,
+	                         (port->flag & PORT_FLAG_SID) ? port->sid : 0xffff,
+	                         (port->pcr_inited == 1) ? port->pcrid : 0xffff, 0);
+	}
+ 
         if (r < 0) {
             printk("tsdemux_init  failed\n");
             goto error4;
         }
+        tsync_pcr_start();
     }
     if (port->type & PORT_TYPE_MPPS) {
         r = psparser_init((port->flag & PORT_FLAG_VID) ? port->vid : 0xffff,
@@ -699,7 +721,7 @@ static  int amstream_port_init(stream_port_t *port)
     }
 
 #if MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON6TVD
-    if (!IS_MESON_M8M2_CPU) {
+    if (!NO_VDEC2_INIT) {
         if ((port->type & PORT_TYPE_VIDEO) && (port->vformat == VFORMAT_H264_4K2K)) {
             stbuf_vdec2_init(pvbuf);
         }
@@ -707,8 +729,10 @@ static  int amstream_port_init(stream_port_t *port)
 #endif
 
     tsync_audio_break(0); // clear audio break
+	set_vsync_pts_inc_mode(0); // clear video inc
 
     port->flag |= PORT_FLAG_INITED;
+    mutex_unlock(&amstream_mutex);
     return 0;
     /*errors follow here*/
 error5:
@@ -720,7 +744,7 @@ error3:
 error2:
     audio_port_release(port, pabuf, 0);
 error1:
-
+    mutex_unlock(&amstream_mutex);
     return r;
 }
 static  int amstream_port_release(stream_port_t *port)
@@ -736,6 +760,7 @@ static  int amstream_port_release(stream_port_t *port)
     }
 
     if (port->type & PORT_TYPE_MPTS) {
+    	 tsync_pcr_stop();
         tsdemux_release();
     }
 
@@ -755,7 +780,8 @@ static  int amstream_port_release(stream_port_t *port)
     if (port->type & PORT_TYPE_SUB) {
         sub_port_release(port, psbuf);
     }
-
+    hevc_format = 0; 
+    port->pcr_inited=0;
     port->flag = 0;
     return 0;
 }
@@ -813,6 +839,11 @@ static ssize_t amstream_vbuf_write(struct file *file, const char *buf,
             return r;
         }
     }
+    if(hevc_format && (pbuf->type != BUF_TYPE_HEVC) && (pbuf->type != BUF_TYPE_AUDIO)&&(pbuf->type != BUF_TYPE_SUBTITLE))
+    	{
+    	printk("something wrong buf_type 0x %x   port_type %x \n",pbuf ->type,port->type);
+         return 0;		
+    	}
 
     if (port->flag & PORT_FLAG_DRM) {
         r = drm_write(file, pbuf, buf, count);
@@ -873,7 +904,14 @@ static ssize_t amstream_mpts_write(struct file *file, const char *buf,
 #ifdef DATA_DEBUG
     debug_file_write(buf, count);
 #endif
-    return tsdemux_write(file, pvbuf, pabuf, buf, count);
+	if (port->flag & PORT_FLAG_DRM){
+		r = drm_tswrite(file, pvbuf, pabuf, buf, count);
+	}
+	else{
+		r = tsdemux_write(file, pvbuf, pabuf, buf, count);
+	}
+
+    return r;
 }
 
 static ssize_t amstream_mpps_write(struct file *file, const char *buf,
@@ -923,7 +961,7 @@ static ssize_t amstream_sub_read(struct file *file, char __user *buf, size_t cou
     sub_wp = stbuf_sub_wp_get();
     sub_start = stbuf_sub_start_get();
 
-    if (sub_wp == sub_rp) {
+    if (sub_wp == sub_rp||sub_rp==0) {
         return 0;
     }
 
@@ -1081,12 +1119,12 @@ static int amstream_open(struct inode *inode, struct file *file)
     s32 i;
     stream_port_t *s;
     stream_port_t *this = &ports[iminor(inode)];
-
     if (iminor(inode) >= amstream_port_num) {
         return (-ENODEV);
     }
-
+    mutex_lock(&amstream_mutex);
     if (this->flag & PORT_FLAG_IN_USE) {
+        mutex_unlock(&amstream_mutex);
         return (-EBUSY);
     }
 
@@ -1094,6 +1132,7 @@ static int amstream_open(struct inode *inode, struct file *file)
     for (s = &ports[0], i = 0; i < amstream_port_num; i++, s++) {
         if ((s->flag & PORT_FLAG_IN_USE) &&
             ((this->type) & (s->type) & (PORT_TYPE_VIDEO | PORT_TYPE_AUDIO))) {
+            mutex_unlock(&amstream_mutex);
             return (-EBUSY);
         }
     }
@@ -1142,6 +1181,7 @@ static int amstream_open(struct inode *inode, struct file *file)
     file->private_data = this;
 
     this->flag = PORT_FLAG_IN_USE;
+    this->pcr_inited = 0;
 #ifdef DATA_DEBUG
     debug_filp = filp_open(DEBUG_FILE_NAME, O_WRONLY, 0);
     if (IS_ERR(debug_filp)) {
@@ -1149,17 +1189,17 @@ static int amstream_open(struct inode *inode, struct file *file)
         debug_filp = NULL;
     }
 #endif
-
+    mutex_unlock(&amstream_mutex);
     return 0;
 }
 
 static int amstream_release(struct inode *inode, struct file *file)
 {
     stream_port_t *this = &ports[iminor(inode)];
-
     if (iminor(inode) >= amstream_port_num) {
         return (-ENODEV);
     }
+    mutex_lock(&amstream_mutex);
     if (this->flag & PORT_FLAG_INITED) {
         amstream_port_release(this);
     }
@@ -1214,7 +1254,7 @@ static int amstream_release(struct inode *inode, struct file *file)
 
     switch_mod_gate_by_name("demux", 0);
 #endif 
-
+    mutex_unlock(&amstream_mutex);
     return 0;
 }
 
@@ -1334,6 +1374,7 @@ static long amstream_ioctl(struct file *file,
 
     case AMSTREAM_IOC_PCRID:
 	this->pcrid= (u32)arg;
+	this->pcr_inited = 1;
        printk("set pcrid = 0x%x \n", this->pcrid);
     	break;
     	
@@ -1742,6 +1783,9 @@ static long amstream_ioctl(struct file *file,
                 printk("Get audio pts from user space fault! \n");
                 return -EFAULT;
             }
+	    if(tsync_get_mode()==TSYNC_MODE_PCRMASTER)
+		tsync_pcr_set_apts(pts);
+            else
             tsync_set_apts(pts);
             break;
          }
@@ -1811,6 +1855,7 @@ static ssize_t ports_show(struct class *class, struct class_attribute *attr, cha
         pbuf += sprintf(pbuf, "\tVid:%d\n", (p->flag & PORT_FLAG_VID) ? p->vid : -1);
         pbuf += sprintf(pbuf, "\tAid:%d\n", (p->flag & PORT_FLAG_AID) ? p->aid : -1);
         pbuf += sprintf(pbuf, "\tSid:%d\n", (p->flag & PORT_FLAG_SID) ? p->sid : -1);
+        pbuf += sprintf(pbuf, "\tPCRid:%d\n", (p->pcr_inited == 1) ? p->pcrid : -1);
         pbuf += sprintf(pbuf, "\tachannel:%d\n", p->achanl);
         pbuf += sprintf(pbuf, "\tasamprate:%d\n", p->asamprate);
         pbuf += sprintf(pbuf, "\tadatawidth:%d\n\n", p->adatawidth);
@@ -1920,12 +1965,25 @@ static ssize_t videobufused_show(struct class *class, struct class_attribute *at
 {
     char *pbuf = buf;
     stream_buf_t *p = NULL;
+#if MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON8        
+    stream_buf_t *p_hevc = NULL;
+#endif
+
     p = &bufs[0];
-	if (p->flag & BUF_FLAG_IN_USE) {
+#if MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON8    
+    if (HAS_HEVC_VDEC)
+        p_hevc = &bufs[BUF_TYPE_HEVC];
+#endif        
+
+    if (p->flag & BUF_FLAG_IN_USE) {
         pbuf += sprintf(pbuf, "%d ", 1);
     } 
-	else 
-	{
+#if MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON8        
+    else if(HAS_HEVC_VDEC && (p_hevc->flag & BUF_FLAG_IN_USE)) {
+        pbuf += sprintf(pbuf, "%d ", 1);        
+    }
+#endif    
+    else {
         pbuf += sprintf(pbuf, "%d ", 0);
     }
     return 1;
@@ -2086,6 +2144,7 @@ static int  amstream_probe(struct platform_device *pdev)
     }
 
     vdec_set_decinfo(&amstream_dec_info);
+    hevc_format = 0;
 
     amstream_dev_class = class_create(THIS_MODULE, DEVICE_NAME);
 
@@ -2140,9 +2199,15 @@ static int  amstream_probe(struct platform_device *pdev)
         bufs[BUF_TYPE_AUDIO].buf_size = DEFAULT_AUDIO_BUFFER_SIZE;
         bufs[BUF_TYPE_AUDIO].flag |= BUF_FLAG_IOMEM;
 
+#if 0
         bufs[BUF_TYPE_SUBTITLE].buf_start = res->start + resource_size(res) - DEFAULT_SUBTITLE_BUFFER_SIZE;
         bufs[BUF_TYPE_SUBTITLE].buf_size = DEFAULT_SUBTITLE_BUFFER_SIZE;
         bufs[BUF_TYPE_SUBTITLE].flag = BUF_FLAG_IOMEM;
+#endif
+        if (stbuf_change_size(&bufs[BUF_TYPE_SUBTITLE], DEFAULT_SUBTITLE_BUFFER_SIZE) != 0) {
+            r = (-ENOMEM);
+            goto error4;
+        }
     }
 
     if (HAS_HEVC_VDEC) {

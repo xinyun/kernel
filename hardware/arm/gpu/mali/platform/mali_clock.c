@@ -12,7 +12,6 @@
 #if MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON6TVD
 
 #define FCLK_MPLL2 (2 << 9)
-
 static DEFINE_SPINLOCK(lock);
 static mali_plat_info_t* pmali_plat = NULL;
 static u32 mali_extr_backup = 0;
@@ -98,7 +97,11 @@ void enable_clock(void)
 
 u32 get_mali_freq(u32 idx)
 {
-	return pmali_plat->clk_sample[idx];
+    if (!mali_pm_statue) {
+    	return pmali_plat->clk_sample[idx];
+    } else {
+        return 0;    
+    }
 }
 
 void set_str_src(u32 data)

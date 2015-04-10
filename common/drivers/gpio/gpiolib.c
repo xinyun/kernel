@@ -307,7 +307,7 @@ static ssize_t gpio_direction_store(struct device *dev,
 	return status ? : size;
 }
 
-static /* const */ DEVICE_ATTR(direction, 0644,
+static /* const */ DEVICE_ATTR(direction, 0666,
 		gpio_direction_show, gpio_direction_store);
 
 static ssize_t gpio_value_show(struct device *dev,
@@ -362,7 +362,7 @@ static ssize_t gpio_value_store(struct device *dev,
 	return status;
 }
 
-static const DEVICE_ATTR(value, 0644,
+static const DEVICE_ATTR(value, 0666,
 		gpio_value_show, gpio_value_store);
 
 static irqreturn_t gpio_sysfs_irq(int irq, void *priv)
@@ -809,12 +809,17 @@ static int gpiod_export(struct gpio_desc *desc, bool direction_may_change)
 			goto fail_unregister_device;
 	}
 
+#if 0//patch from AMLOGIC : close this to avoid the app level set GPIO cause sdcard isr notify problem
 	if (gpiod_to_irq(desc) >= 0 && (direction_may_change ||
 				       !test_bit(FLAG_IS_OUT, &desc->flags))) {
 		status = device_create_file(dev, &dev_attr_edge);
 		if (status)
 			goto fail_unregister_device;
 	}
+#else
+	//just for compile
+	dev_attr_edge = dev_attr_edge;
+#endif
 
 	set_bit(FLAG_EXPORT, &desc->flags);
 	mutex_unlock(&sysfs_lock);

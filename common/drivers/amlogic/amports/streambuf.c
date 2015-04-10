@@ -187,11 +187,18 @@ u32 stbuf_rp(struct stream_buf_s *buf)
         return _READ_ST_REG(RP);
 }
 
+extern int hevc_format;
 u32 stbuf_space(struct stream_buf_s *buf)
 {
     /* reserved space for safe write, the parser fifo size is 1024byts, so reserve it */
     int size;
 
+	if(hevc_format  && (buf->type != BUF_TYPE_HEVC) && (buf->type != BUF_TYPE_AUDIO)&&(buf->type != BUF_TYPE_SUBTITLE))
+		{
+		  printk("HEVC buf_type %x \n",buf->type);
+		  buf->type = 	 BUF_TYPE_HEVC;  
+		  return 0;	   
+		}
 #if MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON8
     if (HAS_HEVC_VDEC && buf->type == BUF_TYPE_HEVC)
         size = buf->canusebuf_size - READ_VREG(HEVC_STREAM_LEVEL);

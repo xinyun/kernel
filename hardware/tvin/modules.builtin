@@ -1,0 +1,5 @@
+kernel/drivers/amlogic/../../../hardware/tvin/tvin_common.ko
+kernel/drivers/amlogic/../../../hardware/tvin/bt656/tvin_bt656.ko
+kernel/drivers/amlogic/../../../hardware/tvin/csi/tvin_csi.ko
+kernel/drivers/amlogic/../../../hardware/tvin/vdin/tvin_vdin.ko
+kernel/drivers/amlogic/../../../hardware/tvin/viu/tvin_viuin.ko

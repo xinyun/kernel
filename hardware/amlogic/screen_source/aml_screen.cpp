@@ -102,7 +102,6 @@ static int aml_screen_device_close(struct hw_device_t *dev)
 int screen_source_start(struct aml_screen_device* dev)
 {
     android::vdin_screen_source* source = (android::vdin_screen_source*)dev->priv;
-    LOGV("screen_source_start");
     return source->start();
 }
 int screen_source_stop(struct aml_screen_device* dev)
@@ -237,6 +236,13 @@ static int aml_screen_device_open(const struct hw_module_t* module, const char* 
             free (dev);
             return -ENOMEM;
         }
+
+        if(source->init()!=0){
+            LOGE("open vdin_screen_source failed!");
+            free (dev);  
+            return -1;
+        }
+
         dev->priv = (void*)source;
         
         /* initialize the procs */

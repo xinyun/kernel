@@ -195,6 +195,12 @@ static mod_record_t mod_records[MOD_MAX_NUM + 1] = {
 		.flag = 1,
 		.dc_en = 1,
 	},{
+		.name = "asyncfifo",
+		.type = MOD_ASYNCFIFO,
+		.ref = 0,
+		.flag = 1,
+		.dc_en = 0,
+	},{
 		.name = NULL,
 		.type = -1,
 		.ref = -1,
@@ -501,6 +507,14 @@ static int _switch_gate(mod_type_t type, int flag)
 			__CLK_GATE_ON(SDIO);
 		}else{
 			__CLK_GATE_OFF(SDIO);
+		}
+		break;
+	case MOD_ASYNCFIFO:
+		PRINT_INFO("trun %s asyncfifo\n", flag? " on" : "off");
+		if(flag){
+			__CLK_GATE_ON(ASYNC_FIFO);
+		}else{
+			__CLK_GATE_OFF(ASYNC_FIFO);
 		}
 		break;
 	default:

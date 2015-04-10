@@ -198,6 +198,20 @@ endif
 
 isource "../hardware/dvb/altobeam/drivers/atbm887x/Kconfig"
 
+config AM_SI2168
+	tristate "SI2168 tuner"
+	default n
+	depends on AM_DVB
+	help
+		select the 2168 tuner.
+
+config SI2168_SERIAL_OUTPUT
+    bool "Serial Output Mode"
+    depends on AM_SI2168
+    default n
+    help
+     data default on DATA0
+
 config AM_SI2177
 	tristate "SI2177 tuner"
 	default n
@@ -212,5 +226,39 @@ config AM_AVL6211
 	help
 		select the AVL6211 DVB-S2 demod.
 
+config AVL6211_OUTPUT_SERIAL
+    bool "Serial Output Mode"
+    depends on AM_AVL6211
+    default n
+    help
+     data default on DATA0
+
+config TH_CXD2837
+   tristate "sony 2837 demod driver"
+   default n
+   depends on AM_DVB
+   help
+		Select to enable sony demod driver.
+
+config TH_CXD2837_TUNER_MXL603
+	tristate "mxl603 tuner driver"
+	default n
+	depends on TH_CXD2837
+	help
+		Select to enable mxl603 demod driver.
+
+config AM_SI2168
+	tristate "SI2168 demod driver"
+	default n
+	depends on AM_DVB
+	help
+		Select to enable SI2168 demod driver.
+
+config AM_MXL101
+	tristate "MXL101 demod driver"
+	default n
+	depends on AM_DVB
+	help
+		Select to enable MXL101 demod driver.
 endmenu
 

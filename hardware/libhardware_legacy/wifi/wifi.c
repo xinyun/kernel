@@ -286,6 +286,9 @@ void set_wifi_power(int on)
 
 int wifi_load_driver()
 {
+    FILE *fp        = NULL;
+    DIR *d;
+    struct dirent *de;
 #ifdef BOARD_WIFI_USE_USB	
 	set_wifi_power(0);
 #endif	
@@ -309,11 +312,39 @@ int wifi_load_driver()
     property_set("ctl.start", ADD_P2P);    
 #endif
 
+#if 1
+#define TIME_COUNT 200
+       count = 0;
+      ALOGD("check loading wifi driver is ok...");
+       do{
+               d = opendir("/sys/class/net");
+               if(d == 0) {
+                       ALOGD("fail to open /sys/class/net");
+                   wifi_unload_driver();
+                      return -1;
+               }
+               while((de = readdir(d))) {
+                       if(strcmp(de->d_name, "wlan0")== 0) {
+                               ALOGE("driver loaded");
+                               property_set(DRIVER_PROP_NAME, "ok");
+                       //      ifc_init();
+                       //      ifc_up("wlan0");
+                       //      ifc_up("p2p0");
+                               return 0;
+                       }
+               }
+               closedir(d);
+               usleep(200000);// 200ms
+  ALOGD("driver not ok ,wait\n");
+    } while (count++ <= TIME_COUNT);
+#else
     if (strcmp(FIRMWARE_LOADER,"") == 0) {
         if (strcmp(WIFI_DRIVER_MODULE_NAME, "8192cu") == 0)
             usleep(1600000);
 				else if (strcmp(WIFI_DRIVER_MODULE_NAME, "8188eu") == 0)
-            usleep(1600000);            
+            usleep(1600000);        
+        else if (strcmp(WIFI_DRIVER_MODULE_NAME, "8723bu") == 0)
+            usleep(1600000);         
         else
             usleep(WIFI_DRIVER_LOADER_DELAY);
         property_set(DRIVER_PROP_NAME, "ok");
@@ -333,6 +364,7 @@ int wifi_load_driver()
         }
         usleep(200000);
     }
+#endif
     property_set(DRIVER_PROP_NAME, "timeout");
     wifi_unload_driver();
     return -1;

@@ -1,4 +1,4 @@
-cmd_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := arm-linux-gnueabihf-gcc -Wp,-MD,drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/.chipenv.o.d  -nostdinc -isystem /opt/linaro/bin/../lib/gcc/arm-linux-gnueabihf/4.7.3/include -I/home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include -Iarch/arm/include/generated  -Iinclude -I/home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I/home/gaojie/Work/Programs/Kernel/test2/common/include/uapi -Iinclude/generated/uapi -include /home/gaojie/Work/Programs/Kernel/test2/common/include/linux/kconfig.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-meson8b/include -Iarch/arm/plat-meson/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -fno-delete-null-pointer-checks -Werror=enum-compare -Werror=comment -Werror=implicit-int -Werror=missing-braces -Werror=unused-value -Werror=maybe-uninitialized -O2 -fno-dwarf2-cfi-asm -mabi=aapcs-linux -mno-thumb-interwork -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -fno-reorder-blocks -fno-ipa-cp-clone -fno-partial-inlining -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fomit-frame-pointer -g -fno-inline-functions-called-once -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -DCC_HAVE_ASM_GOTO -Werror=declaration-after-statement -Werror=maybe-uninitialized -Werror=parentheses -Werror=return-type -Werror=strict-prototypes -Werror=uninitialized -Werror=unused-function -Werror=unused-value -Werror=array-bounds -Werror=comment -Werror=format -Werror=missing-braces -Werror=declaration-after-statement -Werror=unused-label -Werror=unused-result -Werror=unused-value -Werror=unused-variable -Werror=builtin-macro-redefined    -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(chipenv)"  -D"KBUILD_MODNAME=KBUILD_STR(amlnf_phy)" -c -o drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.c
+cmd_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := arm-linux-gnueabihf-gcc -Wp,-MD,drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/.chipenv.o.d  -nostdinc -isystem /opt/linaro/bin/../lib/gcc/arm-linux-gnueabihf/4.7.3/include -I/home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include -Iarch/arm/include/generated  -Iinclude -I/home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I/home/gaojie/Work/Program/Kernel/kernel/common/include/uapi -Iinclude/generated/uapi -include /home/gaojie/Work/Program/Kernel/kernel/common/include/linux/kconfig.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-meson8b/include -Iarch/arm/plat-meson/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -fno-delete-null-pointer-checks -Werror=enum-compare -Werror=comment -Werror=implicit-int -Werror=missing-braces -Werror=unused-value -Werror=maybe-uninitialized -O2 -fno-dwarf2-cfi-asm -mabi=aapcs-linux -mno-thumb-interwork -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -fno-reorder-blocks -fno-ipa-cp-clone -fno-partial-inlining -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fomit-frame-pointer -g -fno-inline-functions-called-once -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -DCC_HAVE_ASM_GOTO -Werror=declaration-after-statement -Werror=maybe-uninitialized -Werror=parentheses -Werror=return-type -Werror=strict-prototypes -Werror=uninitialized -Werror=unused-function -Werror=unused-value -Werror=array-bounds -Werror=comment -Werror=format -Werror=missing-braces -Werror=declaration-after-statement -Werror=unused-label -Werror=unused-result -Werror=unused-value -Werror=unused-variable -Werror=builtin-macro-redefined    -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(chipenv)"  -D"KBUILD_MODNAME=KBUILD_STR(amlnf_phy)" -c -o drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.c
 
 source_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.c
 
@@ -41,13 +41,13 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
     $(wildcard include/config/64bit.h) \
   include/uapi/linux/types.h \
   arch/arm/include/generated/asm/types.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/asm-generic/types.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/asm-generic/types.h \
   include/asm-generic/int-ll64.h \
   include/uapi/asm-generic/int-ll64.h \
   arch/arm/include/generated/asm/bitsperlong.h \
   include/asm-generic/bitsperlong.h \
   include/uapi/asm-generic/bitsperlong.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/linux/posix_types.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/linux/posix_types.h \
   include/linux/stddef.h \
   include/uapi/linux/stddef.h \
   include/linux/compiler.h \
@@ -62,13 +62,13 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
     $(wildcard include/config/optimize/inlining.h) \
   include/linux/compiler-gcc4.h \
     $(wildcard include/config/arch/use/builtin/bswap.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/uapi/asm/posix_types.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/asm-generic/posix_types.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/uapi/asm/posix_types.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/asm-generic/posix_types.h \
   include/linux/poison.h \
     $(wildcard include/config/illegal/pointer/value.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/linux/const.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/linux/const.h \
   include/linux/stat.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/uapi/asm/stat.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/uapi/asm/stat.h \
   include/uapi/linux/stat.h \
   include/linux/time.h \
     $(wildcard include/config/arch/uses/gettimeoffset.h) \
@@ -85,22 +85,22 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/export.h \
     $(wildcard include/config/have/underscore/symbol/prefix.h) \
     $(wildcard include/config/modversions.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/linkage.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/linkage.h \
   include/linux/bitops.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/bitops.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/bitops.h \
   include/linux/irqflags.h \
     $(wildcard include/config/trace/irqflags.h) \
     $(wildcard include/config/irqsoff/tracer.h) \
     $(wildcard include/config/preempt/tracer.h) \
     $(wildcard include/config/trace/irqflags/support.h) \
   include/linux/typecheck.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/irqflags.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/ptrace.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/irqflags.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/ptrace.h \
     $(wildcard include/config/arm/thumb.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/uapi/asm/ptrace.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/uapi/asm/ptrace.h \
     $(wildcard include/config/cpu/endian/be8.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/hwcap.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/uapi/asm/hwcap.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/hwcap.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/uapi/asm/hwcap.h \
   include/asm-generic/bitops/non-atomic.h \
   include/asm-generic/bitops/fls64.h \
   include/asm-generic/bitops/sched.h \
@@ -109,13 +109,13 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/asm-generic/bitops/const_hweight.h \
   include/asm-generic/bitops/lock.h \
   include/asm-generic/bitops/le.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/uapi/asm/byteorder.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/uapi/asm/byteorder.h \
   include/linux/byteorder/little_endian.h \
   include/uapi/linux/byteorder/little_endian.h \
   include/linux/swab.h \
   include/uapi/linux/swab.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/swab.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/uapi/asm/swab.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/swab.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/uapi/asm/swab.h \
   include/linux/byteorder/generic.h \
   include/asm-generic/bitops/ext2-atomic-setbit.h \
   include/linux/log2.h \
@@ -132,24 +132,24 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/string.h \
     $(wildcard include/config/binary/printf.h) \
   include/uapi/linux/string.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/string.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/string.h \
   include/linux/errno.h \
   include/uapi/linux/errno.h \
   arch/arm/include/generated/asm/errno.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/asm-generic/errno.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/asm-generic/errno-base.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/asm-generic/errno.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/asm-generic/errno-base.h \
   include/uapi/linux/kernel.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/linux/sysinfo.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/div64.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/compiler.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/bug.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/linux/sysinfo.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/div64.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/compiler.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/bug.h \
     $(wildcard include/config/bug.h) \
     $(wildcard include/config/thumb2/kernel.h) \
     $(wildcard include/config/debug/bugverbose.h) \
     $(wildcard include/config/arm/lpae.h) \
   include/asm-generic/bug.h \
     $(wildcard include/config/generic/bug/relative/pointers.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/cache.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/cache.h \
     $(wildcard include/config/arm/l1/cache/shift.h) \
     $(wildcard include/config/aeabi.h) \
   include/linux/seqlock.h \
@@ -167,38 +167,38 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
     $(wildcard include/config/compat.h) \
     $(wildcard include/config/debug/stack/usage.h) \
   include/linux/bug.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/thread_info.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/thread_info.h \
     $(wildcard include/config/crunch.h) \
     $(wildcard include/config/arm/thumbee.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/fpstate.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/fpstate.h \
     $(wildcard include/config/vfpv3.h) \
     $(wildcard include/config/iwmmxt.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/domain.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/domain.h \
     $(wildcard include/config/io/36.h) \
     $(wildcard include/config/cpu/use/domains.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/barrier.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/barrier.h \
     $(wildcard include/config/cpu/32v6k.h) \
     $(wildcard include/config/cpu/xsc3.h) \
     $(wildcard include/config/cpu/fa526.h) \
     $(wildcard include/config/arch/has/barriers.h) \
     $(wildcard include/config/arm/dma/mem/bufferable.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/outercache.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/outercache.h \
     $(wildcard include/config/outer/cache/sync.h) \
     $(wildcard include/config/outer/cache.h) \
   include/linux/bottom_half.h \
   include/linux/spinlock_types.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/spinlock_types.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/spinlock_types.h \
   include/linux/lockdep.h \
     $(wildcard include/config/lockdep.h) \
     $(wildcard include/config/lock/stat.h) \
     $(wildcard include/config/prove/rcu.h) \
   include/linux/rwlock_types.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/spinlock.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/processor.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/spinlock.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/processor.h \
     $(wildcard include/config/have/hw/breakpoint.h) \
     $(wildcard include/config/mmu.h) \
     $(wildcard include/config/arm/errata/754327.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/hw_breakpoint.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/hw_breakpoint.h \
   include/linux/rwlock.h \
   include/linux/spinlock_api_smp.h \
     $(wildcard include/config/inline/spin/lock.h) \
@@ -233,8 +233,8 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/atomic.h \
     $(wildcard include/config/arch/has/atomic/or.h) \
     $(wildcard include/config/generic/atomic64.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/atomic.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/cmpxchg.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/atomic.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/cmpxchg.h \
     $(wildcard include/config/cpu/sa1100.h) \
     $(wildcard include/config/cpu/sa110.h) \
     $(wildcard include/config/cpu/v6.h) \
@@ -295,7 +295,7 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/page-flags-layout.h \
     $(wildcard include/config/sparsemem/vmemmap.h) \
   include/generated/bounds.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/page.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/page.h \
     $(wildcard include/config/cpu/copy/v4wt.h) \
     $(wildcard include/config/cpu/copy/v4wb.h) \
     $(wildcard include/config/cpu/copy/feroceon.h) \
@@ -303,9 +303,9 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
     $(wildcard include/config/cpu/xscale.h) \
     $(wildcard include/config/cpu/copy/v6.h) \
     $(wildcard include/config/kuser/helpers.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/glue.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/pgtable-2level-types.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/memory.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/glue.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/pgtable-2level-types.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/memory.h \
     $(wildcard include/config/need/mach/memory/h.h) \
     $(wildcard include/config/page/offset.h) \
     $(wildcard include/config/dram/size.h) \
@@ -367,12 +367,12 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/jiffies.h \
   include/linux/timex.h \
   include/uapi/linux/timex.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/linux/param.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/linux/param.h \
   arch/arm/include/generated/asm/param.h \
   include/asm-generic/param.h \
     $(wildcard include/config/hz.h) \
   include/uapi/asm-generic/param.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/timex.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/timex.h \
     $(wildcard include/config/arch/multiplatform.h) \
   arch/arm/mach-meson8b/include/mach/timex.h \
     $(wildcard include/config/meson/clock/tick/rate.h) \
@@ -383,27 +383,27 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
     $(wildcard include/config/use/percpu/numa/node/id.h) \
   include/linux/smp.h \
     $(wildcard include/config/use/generic/smp/helpers.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/smp.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/smp.h \
   include/linux/percpu.h \
     $(wildcard include/config/need/per/cpu/embed/first/chunk.h) \
     $(wildcard include/config/need/per/cpu/page/first/chunk.h) \
     $(wildcard include/config/have/setup/per/cpu/area.h) \
   include/linux/pfn.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/percpu.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/percpu.h \
   include/asm-generic/percpu.h \
   include/linux/percpu-defs.h \
     $(wildcard include/config/debug/force/weak/per/cpu.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/topology.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/topology.h \
     $(wildcard include/config/arm/cpu/topology.h) \
   include/asm-generic/topology.h \
   include/linux/mmdebug.h \
     $(wildcard include/config/debug/vm.h) \
     $(wildcard include/config/debug/virtual.h) \
   include/linux/elf.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/elf.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/user.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/elf.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/user.h \
   include/uapi/linux/elf.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/linux/elf-em.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/linux/elf-em.h \
   include/linux/kobject.h \
   include/linux/sysfs.h \
   include/linux/kobject_ns.h \
@@ -416,7 +416,7 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/static_key.h \
   include/linux/jump_label.h \
     $(wildcard include/config/jump/label.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/module.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/module.h \
     $(wildcard include/config/arm/unwind.h) \
   include/asm-generic/module.h \
     $(wildcard include/config/have/mod/arch/specific.h) \
@@ -447,7 +447,7 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
     $(wildcard include/config/pm/clk.h) \
     $(wildcard include/config/pm/generic/domains.h) \
   include/linux/ratelimit.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/device.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/device.h \
     $(wildcard include/config/dmabounce.h) \
     $(wildcard include/config/iommu/api.h) \
     $(wildcard include/config/arm/dma/use/iommu.h) \
@@ -457,7 +457,7 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/uuid.h \
   include/uapi/linux/uuid.h \
   include/linux/delay.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/delay.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/delay.h \
   include/linux/dma-mapping.h \
     $(wildcard include/config/has/dma.h) \
     $(wildcard include/config/arch/has/dma/set/coherent/mask.h) \
@@ -495,7 +495,7 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/auxvec.h \
   include/uapi/linux/auxvec.h \
   arch/arm/include/generated/asm/auxvec.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/asm-generic/auxvec.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/asm-generic/auxvec.h \
   include/linux/page-debug-flags.h \
     $(wildcard include/config/page/poisoning.h) \
     $(wildcard include/config/page/guard.h) \
@@ -503,15 +503,15 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/uprobes.h \
     $(wildcard include/config/arch/supports/uprobes.h) \
     $(wildcard include/config/uprobes.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/mmu.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/mmu.h \
     $(wildcard include/config/cpu/has/asid.h) \
   include/linux/range.h \
   include/linux/bit_spinlock.h \
   include/linux/shrinker.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/pgtable.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/pgtable.h \
     $(wildcard include/config/highpte.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/proc-fns.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/glue-proc.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/proc-fns.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/glue-proc.h \
     $(wildcard include/config/cpu/arm7tdmi.h) \
     $(wildcard include/config/cpu/arm720t.h) \
     $(wildcard include/config/cpu/arm740t.h) \
@@ -532,9 +532,9 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
     $(wildcard include/config/cpu/v7.h) \
     $(wildcard include/config/cpu/pj4b.h) \
   include/asm-generic/pgtable-nopud.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/pgtable-hwdef.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/pgtable-2level-hwdef.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/pgtable-2level.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/pgtable-hwdef.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/pgtable-2level-hwdef.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/pgtable-2level.h \
   include/asm-generic/pgtable.h \
   include/linux/page-flags.h \
     $(wildcard include/config/pageflags/extended.h) \
@@ -546,11 +546,11 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
     $(wildcard include/config/vm/event/counters.h) \
   include/linux/vm_event_item.h \
     $(wildcard include/config/migration.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/scatterlist.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/scatterlist.h \
     $(wildcard include/config/arm/has/sg/chain.h) \
   include/asm-generic/scatterlist.h \
     $(wildcard include/config/need/sg/dma/length.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/io.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/io.h \
     $(wildcard include/config/need/mach/io/h.h) \
     $(wildcard include/config/pci.h) \
     $(wildcard include/config/pcmcia/soc/common.h) \
@@ -559,7 +559,7 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/asm-generic/pci_iomap.h \
     $(wildcard include/config/no/generic/pci/ioport/map.h) \
     $(wildcard include/config/generic/pci/iomap.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/dma-mapping.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/dma-mapping.h \
   include/linux/dma-debug.h \
     $(wildcard include/config/dma/api/debug.h) \
   include/asm-generic/dma-coherent.h \
@@ -640,16 +640,16 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/ipc.h \
   include/uapi/linux/ipc.h \
   arch/arm/include/generated/asm/ipcbuf.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/asm-generic/ipcbuf.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/asm-generic/ipcbuf.h \
   arch/arm/include/generated/asm/sembuf.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/asm-generic/sembuf.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/asm-generic/sembuf.h \
   include/linux/signal.h \
     $(wildcard include/config/old/sigaction.h) \
   include/uapi/linux/signal.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/signal.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/uapi/asm/signal.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/asm-generic/signal-defs.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/uapi/asm/sigcontext.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/signal.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/uapi/asm/signal.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/asm-generic/signal-defs.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/uapi/asm/sigcontext.h \
   arch/arm/include/generated/asm/siginfo.h \
   include/asm-generic/siginfo.h \
   include/uapi/asm-generic/siginfo.h \
@@ -705,21 +705,21 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/path.h \
   include/linux/radix-tree.h \
   include/linux/semaphore.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/linux/fiemap.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/linux/fiemap.h \
   include/linux/migrate_mode.h \
   include/linux/percpu-rwsem.h \
   include/linux/blk_types.h \
     $(wildcard include/config/blk/cgroup.h) \
     $(wildcard include/config/blk/dev/integrity.h) \
   include/uapi/linux/fs.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/linux/limits.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/linux/ioctl.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/linux/limits.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/linux/ioctl.h \
   arch/arm/include/generated/asm/ioctl.h \
   include/asm-generic/ioctl.h \
   include/uapi/asm-generic/ioctl.h \
   include/linux/quota.h \
     $(wildcard include/config/quota/netlink/interface.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/linux/dqblk_xfs.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/linux/dqblk_xfs.h \
   include/linux/dqblk_v1.h \
   include/linux/dqblk_v2.h \
   include/linux/dqblk_qtree.h \
@@ -728,10 +728,10 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/nfs_fs_i.h \
   include/linux/fcntl.h \
   include/uapi/linux/fcntl.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/uapi/asm/fcntl.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/asm-generic/fcntl.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/uaccess.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/unified.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/uapi/asm/fcntl.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/asm-generic/fcntl.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/uaccess.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/unified.h \
     $(wildcard include/config/arm/asm/unified.h) \
   include/linux/reboot.h \
   include/uapi/linux/reboot.h \
@@ -773,7 +773,7 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
     $(wildcard include/config/blk/dev/bsg.h) \
     $(wildcard include/config/blk/dev/throttling.h) \
     $(wildcard include/config/bounce.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/linux/major.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/linux/major.h \
   include/linux/genhd.h \
     $(wildcard include/config/fail/make/request.h) \
     $(wildcard include/config/solaris/x86/partition.h) \
@@ -790,26 +790,26 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/ftrace_irq.h \
     $(wildcard include/config/ftrace/nmi/enter.h) \
   include/linux/vtime.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/hardirq.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/irq.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/hardirq.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/irq.h \
     $(wildcard include/config/sparse/irq.h) \
     $(wildcard include/config/multi/irq/handler.h) \
   arch/arm/mach-meson8b/include/mach/irqs.h \
   include/linux/irq_cpustat.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/cacheflush.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/cacheflush.h \
     $(wildcard include/config/smp/on/up.h) \
     $(wildcard include/config/arm/errata/411920.h) \
     $(wildcard include/config/cpu/cache/vipt.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/glue-cache.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/glue-cache.h \
     $(wildcard include/config/cpu/cache/v4.h) \
     $(wildcard include/config/cpu/cache/v4wb.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/shmparam.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/cachetype.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/shmparam.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/cachetype.h \
     $(wildcard include/config/cpu/cache/vivt.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/rodata.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/rodata.h \
     $(wildcard include/config/debug/rodata.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/kmap_types.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/highmem.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/kmap_types.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/highmem.h \
     $(wildcard include/config/cpu/tlb/v6.h) \
     $(wildcard include/config/arm/errata/798181.h) \
   include/linux/hugetlb_inline.h \
@@ -826,7 +826,7 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
   include/linux/elevator.h \
   include/linux/hashtable.h \
   include/linux/hash.h \
-  /home/gaojie/Work/Programs/Kernel/test2/common/include/uapi/linux/blkpg.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/include/uapi/linux/blkpg.h \
   include/linux/freezer.h \
     $(wildcard include/config/cgroup/freezer.h) \
   include/linux/vmalloc.h \
@@ -850,7 +850,7 @@ deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o := \
     $(wildcard include/config/remove/property.h) \
     $(wildcard include/config/update/property.h) \
     $(wildcard include/config/proc/devicetree.h) \
-  /home/gaojie/Work/Programs/Kernel/test2/common/arch/arm/include/asm/prom.h \
+  /home/gaojie/Work/Program/Kernel/kernel/common/arch/arm/include/asm/prom.h \
   arch/arm/mach-meson8b/include/mach/pinmux_queue.h \
 
 drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o: $(deps_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/chipenv.o)

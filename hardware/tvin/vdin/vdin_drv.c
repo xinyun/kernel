@@ -860,7 +860,7 @@ static int vdin_func(int no, vdin_arg_t *arg)
 			}
 			vdin_set_vframe_prop_info(&devp->curr_wr_vfe->vf, devp);
 			vdin_backup_histgram(&devp->curr_wr_vfe->vf, devp);
-			vf = parm->private;
+			vf = (struct vframe_s *)parm->private;
 			if(vf && devp->curr_wr_vfe)
 				memcpy(&vf->prop,&devp->curr_wr_vfe->vf.prop,sizeof(vframe_prop_t));
 			break;
@@ -1343,10 +1343,6 @@ irqreturn_t vdin_v4l2_isr(int irq, void *dev_id)
 
 
 	if(devp->last_wr_vfe){
-		struct timeval ts;
-		do_gettimeofday(&ts);
-		devp->last_wr_vfe->vf.pts_us64 = ts.tv_sec;
-		devp->last_wr_vfe->vf.pts = ts.tv_usec;
 		provider_vf_put(devp->last_wr_vfe, devp->vfp);
 		devp->last_wr_vfe = NULL;
 		vf_notify_receiver(devp->name,VFRAME_EVENT_PROVIDER_VFRAME_READY,NULL);
@@ -1963,7 +1959,7 @@ static int vdin_drv_probe(struct platform_device *pdev)
 	                goto fail_get_resource_mem;
 	        }
 	        else {
-	                ret= find_reserve_block_by_name(name);
+	                ret= find_reserve_block_by_name((char *)name);
 	                if(ret<0) {
 	                        pr_err("\nvdin memory resource undefined2.\n");
 	                        ret = -EFAULT;

@@ -60,6 +60,8 @@ obj-$(CONFIG_AML_TOUCH_ALGORITHM_SUPPORT) += ../../../hardware/amlogic/touch/
 endif
 obj-$(CONFIG_AMLOGIC_SPI_NOR) += spi_nor/
 
+obj-$(CONFIG_AMLOGIC_SHUTDOWN) += shutdown/
+
 #obj-$(CONFIG_CARDREADER) += cardreader/
 obj-$(CONFIG_MMC_AML) +=mmc/
 
@@ -82,7 +84,7 @@ endif
 
 obj-$(CONFIG_AML_EXT_HDMIIN) += ext_hdmiin/
 
-obj-y += thermal/
+#obj-y += thermal/
 
 
 #####Sound system is later init in kernel default..######################
@@ -106,6 +108,7 @@ ifneq ($(wildcard $(srctree)/../hardware/wifi),)
 	obj-$(CONFIG_RTL8189ES) += ../../../hardware/wifi/realtek/drivers/8189es/rtl8189ES/	
 	obj-$(CONFIG_RTL8723BS) += ../../../hardware/wifi/realtek/drivers/8723bs/rtl8723BS/	
 	obj-$(CONFIG_RTL8723AU) += ../../../hardware/wifi/realtek/drivers/8723au/rtl8723AU/
+	obj-$(CONFIG_RTL8723BU) += ../../../hardware/wifi/realtek/drivers/8723bu/rtl8723BU/
 	obj-$(CONFIG_RTL8821AU) += ../../../hardware/wifi/realtek/drivers/8811au/rtl8811AU/
 	obj-$(CONFIG_RTL8812AU) += ../../../hardware/wifi/realtek/drivers/8812au/rtl8812AU/
 endif

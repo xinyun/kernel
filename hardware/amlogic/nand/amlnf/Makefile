@@ -2,24 +2,24 @@
 # Makefile for the Amlogic NAND drivers.
 #
 #obj-$(CONFIG_AML_NEXT_GEN_NAND)		+= phy/
-KBUILD_CFLAGS += -Werror=declaration-after-statement \
-		 -Werror=maybe-uninitialized \
-		 -Werror=parentheses \
-		 -Werror=return-type \
-		 -Werror=strict-prototypes \
-		 -Werror=uninitialized \
-		 -Werror=unused-function \
-		 -Werror=unused-value \
-		 -Werror=array-bounds \
-		 -Werror=comment \
-		 -Werror=format \
-		 -Werror=missing-braces \
-		 -Werror=declaration-after-statement \
-		 -Werror=unused-label \
-		 -Werror=unused-result \
-		 -Werror=unused-value \
-		 -Werror=unused-variable \
-		 -Werror=builtin-macro-redefined
+#KBUILD_CFLAGS += -Werror=declaration-after-statement \
+#		 -Werror=maybe-uninitialized \
+#		 -Werror=parentheses \
+#		 -Werror=return-type \
+#		 -Werror=strict-prototypes \
+#		 -Werror=uninitialized \
+#		 -Werror=unused-function \
+#		 -Werror=unused-value \
+#		 -Werror=array-bounds \
+#		 -Werror=comment \
+#		 -Werror=format \
+#		 -Werror=missing-braces \
+#		 -Werror=declaration-after-statement \
+#		 -Werror=unused-label \
+#		 -Werror=unused-result \
+#		 -Werror=unused-value \
+#		 -Werror=unused-variable \
+#		 -Werror=builtin-macro-redefined
 
 
 
@@ -35,8 +35,10 @@ aml_nftl_dev-objs =
 aml_nftl_dev-objs += block/aml_nftl_block.o
 aml_nftl_dev-objs += block/aml_nftl_init.o
 aml_nftl_dev-objs += block/aml_nftl_hw_interface.o
-aml_nftl_dev-objs += ../../../../../../../../../hardware/amlogic/nand/amlnf/nftl/aml_nftl_core_20140806.z
+aml_nftl_dev-objs += nftl/aml_nftl_core_20150204.o
 
+
+#bootimage building.
 #aml_nftl_dev-objs += nftl/aml_nftl_phy.o       
 #aml_nftl_dev-objs  += nftl/aml_nftl_list.o      
 #aml_nftl_dev-objs  += nftl/aml_nftl_logic.o     

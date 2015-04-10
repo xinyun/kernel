@@ -44,6 +44,11 @@
 #include <linux/of_platform.h>
 #include "remote_main.h"
 
+#include <mach/gpio.h>
+//#include <mach/pctl.h>
+#include <plat/regops.h>
+#include <plat/io.h>
+
 #undef NEW_BOARD_LEARNING_MODE
 
 //#define IR_CONTROL_HOLD_LAST_KEY    (1<<6)
@@ -57,6 +62,9 @@
 static struct early_suspend early_suspend;
 #endif
 
+static bool key_pointer_switch = true;
+static unsigned int FN_KEY_SCANCODE = 0x3ff;
+static unsigned int OK_KEY_SCANCODE = 0x3ff;
 type_printk input_dbg;
 static DEFINE_MUTEX(remote_enable_mutex);
 static DEFINE_MUTEX(remote_file_mutex);
@@ -70,6 +78,65 @@ static struct remote *gp_remote = NULL;
 char *remote_log_buf;
 // use 20 map for this driver
 static __u16 key_map[20][512];
+static  irqreturn_t (*remote_bridge_sw_isr[])(int irq, void *dev_id)={
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	remote_bridge_isr,
+	remote_bridge_isr,
+};
+
+static  int (*remote_report_key[])(struct remote *remote_data)={
+	remote_hw_reprot_key,
+	remote_hw_reprot_key,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	remote_sw_reprot_key		
+};
+
+static  void (*remote_report_release_key[])(struct remote *remote_data)={
+	remote_nec_report_release_key,
+	remote_duokan_report_release_key,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	remote_sw_reprot_release_key
+};
 static __u16 mouse_map[20][6];
 int remote_printk(const char *fmt, ...)
 {
@@ -87,15 +154,21 @@ int remote_printk(const char *fmt, ...)
 
 static int remote_mouse_event(struct input_dev *dev, unsigned int scancode, unsigned int type,bool flag)
 {
-	if(flag)
-		return 1;
 	
 	__u16 mouse_code = REL_X;
 	__s32 mouse_value = 0;
 	static unsigned int repeat_count = 0;
+#ifdef 	CONFIG_MESON8B_TH12
+	static unsigned int step = 8;
+	__s32 move_accelerate[] = {0, 4, 4, 8, 8, 12, 16, 20, 24, 28};
+#else
+	static unsigned int step = 1;
 	__s32 move_accelerate[] = {0, 2, 2, 4, 4, 6, 8, 10, 12, 14, 16, 18};
+#endif	
 	unsigned int i;
 
+	if(flag)
+		return 1;
 	for (i = 0; i < ARRAY_SIZE(mouse_map[gp_remote->map_num]); i++)
 		if (mouse_map[gp_remote->map_num][i] == scancode) {
 			break;
@@ -118,19 +191,19 @@ static int remote_mouse_event(struct input_dev *dev, unsigned int scancode, unsi
 	switch (i) {
 		case 0:
 			mouse_code = REL_X;
-			mouse_value = -(1 + move_accelerate[repeat_count]);
+			mouse_value = -(step + move_accelerate[repeat_count]);
 			break;
 		case 1:
 			mouse_code = REL_X;
-			mouse_value = 1 + move_accelerate[repeat_count];
+			mouse_value = step + move_accelerate[repeat_count];
 			break;
 		case 2:
 			mouse_code = REL_Y;
-			mouse_value = -(1 + move_accelerate[repeat_count]);
+			mouse_value = -(step + move_accelerate[repeat_count]);
 			break;
 		case 3:
 			mouse_code = REL_Y;
-			mouse_value = 1 + move_accelerate[repeat_count];
+			mouse_value = step + move_accelerate[repeat_count];
 			break;
 		case 4:		//up
 			mouse_code = REL_WHEEL;
@@ -172,7 +245,11 @@ void remote_send_key(struct input_dev *dev, unsigned int scancode, unsigned int 
             gp_remote->repeat_enable = 1;	
             gp_remote->input->rep[REP_DELAY] = gp_remote->repeat_delay;
             gp_remote->input->rep[REP_PERIOD] = gp_remote->repeat_peroid;
-        }
+#ifdef CONFIG_MESON8B_TH12	    
+	    input_event(dev, EV_KEY, BTN_TOOL_MOUSE, 1);
+            input_sync(dev);
+#endif
+	 }
         // switch from pointer to key
         else
         {
@@ -180,7 +257,15 @@ void remote_send_key(struct input_dev *dev, unsigned int scancode, unsigned int 
             gp_remote->repeat_enable = 0;
             gp_remote->input->rep[REP_DELAY] = 0xffffffff;
             gp_remote->input->rep[REP_PERIOD] = 0xffffffff;
-        }
+#ifdef CONFIG_MESON8B_TH12
+	    input_event(dev, EV_KEY, BTN_TOOL_MOUSE, 0);
+            input_sync(dev);	
+	    input_event(dev, EV_KEY, 0xff, 1);
+            input_sync(dev);
+            input_event(dev, EV_KEY, 0xff, 0);
+            input_sync(dev);
+#endif        
+	}
     }
 
     if(scancode == OK_KEY_SCANCODE && key_pointer_switch == false)
@@ -201,20 +286,47 @@ void remote_send_key(struct input_dev *dev, unsigned int scancode, unsigned int 
 			input_dbg("scancode is 0x%04x, invalid key is 0x%04x.\n", scancode, key_map[gp_remote->map_num][scancode]);
 			return;
 		}
+#ifdef CONFIG_MESON8B_512M_TH01
+		if(type == 2 && scancode == 0xdc && key_map[gp_remote->map_num][scancode] == 0x0074){
+			return;
+		}else{
+	        input_event(dev, EV_KEY, key_map[gp_remote->map_num][scancode], type);
+		    input_sync(dev);
+		}
+#else
 		if(type == 1 && scancode == 0x1a && key_map[gp_remote->map_num][scancode] == 0x0074){
 		    disable_irq(NEC_REMOTE_IRQ_NO);
-                }
-		if(type == 0 && scancode == 0x1a && key_map[gp_remote->map_num][scancode] == 0x0074){
-		    enable_irq(NEC_REMOTE_IRQ_NO);
-                }
+		}
+		if(type == 0 && scancode == 0x1a && key_map[gp_remote->map_num][scancode] == 0x0074){							enable_irq(NEC_REMOTE_IRQ_NO);
+		}
+
 		input_event(dev, EV_KEY, key_map[gp_remote->map_num][scancode], type);
 		input_sync(dev);
+#endif
 		switch (type) {
 			case 0:
-				input_dbg("release ircode = 0x%02x, scancode = 0x%04x, maptable = %d \n", scancode, key_map[gp_remote->map_num][scancode],gp_remote->map_num);
+				#if defined(CONFIG_MESON8B_TH0)
+				CLEAR_AOBUS_REG_MASK(AO_RTI_PIN_MUX_REG, (1<<3)|(1<<13)|(1<<31));
+				CLEAR_AOBUS_REG_MASK(AO_GPIO_O_EN_N, 1<<13);
+				SET_AOBUS_REG_MASK(AO_GPIO_O_EN_N, 1<<29);
+				#elif defined(CONFIG_MESON8B_TH8) || defined(CONFIG_MESON8B_512M_TH8)
+				CLEAR_AOBUS_REG_MASK(AO_RTI_PIN_MUX_REG, (1<<8)|(1<<10));
+				CLEAR_AOBUS_REG_MASK(AO_GPIO_O_EN_N, 1<<2);
+				CLEAR_AOBUS_REG_MASK(AO_GPIO_O_EN_N, 1<<18);
+                #endif
+				input_dbg("th release ircode = 0x%02x, scancode = 0x%04x, maptable = %d \n", scancode, key_map[gp_remote->map_num][scancode],gp_remote->map_num);
 				break;
 			case 1:
-				input_dbg("press ircode = 0x%02x, scancode = 0x%04x, maptable = %d \n", scancode, key_map[gp_remote->map_num][scancode],gp_remote->map_num);
+				#if defined(CONFIG_MESON8B_TH0)
+				CLEAR_AOBUS_REG_MASK(AO_RTI_PIN_MUX_REG, (1<<3)|(1<<13)|(1<<31));
+				CLEAR_AOBUS_REG_MASK(AO_GPIO_O_EN_N, 1<<13);
+				CLEAR_AOBUS_REG_MASK(AO_GPIO_O_EN_N, 1<<29);
+				#elif defined(CONFIG_MESON8B_TH8) || defined(CONFIG_MESON8B_512M_TH8)
+				CLEAR_AOBUS_REG_MASK(AO_RTI_PIN_MUX_REG, (1<<8)|(1<<10));
+				CLEAR_AOBUS_REG_MASK(AO_GPIO_O_EN_N, 1<<2);
+				SET_AOBUS_REG_MASK(AO_GPIO_O_EN_N, 1<<18);
+				#endif
+				input_dbg("th press ircode = 0x%02x, scancode = 0x%04x, maptable = %d \n", scancode, key_map[gp_remote->map_num][scancode],gp_remote->map_num);
 				break;
 			case 2:
 				input_dbg("repeat ircode = 0x%02x, scancode = 0x%04x, maptable = %d \n", scancode, key_map[gp_remote->map_num][scancode],gp_remote->map_num);
@@ -243,7 +355,7 @@ static void enable_remote_irq(void)
 
 }
 
-int remote_reprot_key( struct remote * remote_data){
+void remote_reprot_key( struct remote * remote_data){
 	remote_report_key[remote_data->work_mode](remote_data);
 }
 static void remote_release_timer_sr(unsigned long data)
@@ -259,7 +371,7 @@ static irqreturn_t remote_interrupt(int irq, void *dev_id){
 	return IRQ_HANDLED;
 }
 
-static void remote_fiq_interrupt(unsigned long data)
+static void remote_fiq_interrupt(void)
 {
 	//struct remote *remote_data = (struct remote *)data;
 	remote_reprot_key(gp_remote);
@@ -315,7 +427,10 @@ static DEVICE_ATTR(log_buffer, S_IRUGO | S_IWUSR, remote_log_buffer_show, NULL);
 
 static int hardware_init(struct platform_device *pdev)
 {
-	devm_pinctrl_get_select_default(&pdev->dev);
+	struct pinctrl *p;
+	p=devm_pinctrl_get_select_default(&pdev->dev);
+	if (IS_ERR(p))
+		return -1;
 	set_remote_mode(DECODEMODE_NEC);
 	return request_irq(NEC_REMOTE_IRQ_NO, remote_interrupt, IRQF_SHARED, "keypad", (void *)remote_interrupt);
 }
@@ -346,7 +461,7 @@ static int work_mode_config(unsigned int cur_mode)
 		gp_remote->fiq_handle_item.name = "remote_bridge";
 		register_fiq_bridge_handle(&gp_remote->fiq_handle_item);
 		desc->depth++;
-		request_fiq(NEC_REMOTE_IRQ_NO, &remote_fiq_interrupt);
+		request_fiq(NEC_REMOTE_IRQ_NO, remote_fiq_interrupt);
 	}
 	else{
 		printk("do nothing\n");
@@ -545,11 +660,11 @@ static int register_remote_dev(struct remote *remote)
 }
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
-static int remote_early_suspend(struct early_suspend *handler)
+static void remote_early_suspend(struct early_suspend *handler)
 {
 	 printk("remote_early_suspend, set sleep 1 \n");
 	 gp_remote->sleep = 1;
-	 return 0;
+	 return;
 }
 #endif
 
@@ -565,8 +680,8 @@ static int remote_probe(struct platform_device *pdev)
 	struct remote *remote;
 	struct input_dev *input_dev;
 	unsigned int ao_baseaddr;
-	aml_set_reg32_mask(P_AO_RTI_PIN_MUX_REG, (1 << 0));
 	int i, ret;
+	aml_set_reg32_mask(P_AO_RTI_PIN_MUX_REG, (1 << 0));
 	if (!pdev->dev.of_node) {
 		printk("aml_remote: pdev->dev.of_node == NULL!\n");
 		return -1;
@@ -699,7 +814,7 @@ static int remote_remove(struct platform_device *pdev)
 	device_remove_file(&pdev->dev, &dev_attr_enable);
 	device_remove_file(&pdev->dev, &dev_attr_log_buffer);
 	if(gp_remote->work_mode >= DECODEMODE_MAX){
-		free_fiq(NEC_REMOTE_IRQ_NO, &remote_fiq_interrupt);
+		free_fiq(NEC_REMOTE_IRQ_NO, remote_fiq_interrupt);
 		free_irq(BRIDGE_IRQ, gp_remote);
 	} else {
 		free_irq(NEC_REMOTE_IRQ_NO, remote_interrupt);
@@ -743,7 +858,7 @@ static int remote_resume(struct platform_device * pdev)
 	return 0;
 }
 
-static int remote_suspend(struct platform_device * pdev)
+static int remote_suspend(struct platform_device * pdev,pm_message_t state)
 {
 	printk("remote_suspend, set sleep 1 \n");
 	gp_remote->sleep = 1;

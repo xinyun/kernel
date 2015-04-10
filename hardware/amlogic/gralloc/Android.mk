@@ -18,18 +18,28 @@
 
 LOCAL_PATH := $(call my-dir)
 
-# HAL module implemenation, not prelinked and stored in
-# hw/<OVERLAY_HARDWARE_MODULE_ID>.<ro.product.board>.so
+#framebuffer apis
 include $(CLEAR_VARS)
 ifeq ($(TARGET_USE_TRIPLE_FB_BUFFERS), true)
 LOCAL_CFLAGS += -DENABLE_FB_TRIPLE_BUFFERS
 endif
+
+ifeq ($(TARGET_EXTERNAL_DISPLAY),true)
+ifeq ($(TARGET_SINGLE_EXTERNAL_DISPLAY_USE_FB1),true)
+LOCAL_CFLAGS += -DSINGLE_EXTERNAL_DISPLAY_USE_FB1
+endif
+endif
+
+#LOCAL_CFLAGS += -DDEBUG_EXTERNAL_DISPLAY_ON_PANEL
 LOCAL_PRELINK_MODULE := false
-LOCAL_SRC_FILES := fb_buf_num.cpp
+LOCAL_SRC_FILES := framebuffer.cpp
 LOCAL_MODULE := libfbcnf
-LOCAL_SHARED_LIBRARIES := liblog libcutils
+LOCAL_SHARED_LIBRARIES := liblog libcutils libutils libsync 
 include $(BUILD_SHARED_LIBRARY)
 
+
+# HAL module implemenation, not prelinked and stored in
+# hw/<OVERLAY_HARDWARE_MODULE_ID>.<ro.product.board>.so
 include $(CLEAR_VARS)
 LOCAL_PRELINK_MODULE := false
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
@@ -38,7 +48,7 @@ LOCAL_MODULE := gralloc.amlogic
 #LOCAL_MODULE_TAGS := optional
 
 #LOCAL_CFLAGS:= -DLOG_TAG=\"gralloc\" -DGRALLOC_32_BITS -DSTANDARD_LINUX_SCREEN
-LOCAL_CFLAGS:= -DLOG_TAG=\"gralloc\" -DGRALLOC_32_BITS 
+LOCAL_CFLAGS:= -DLOG_TAG=\"gralloc\" -DGRALLOC_32_BITS  -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 
 ifeq ($(USING_ION),true)
 SHARED_MEM_LIBS := libion
@@ -54,8 +64,9 @@ ifeq ($(TARGET_USE_TRIPLE_FB_BUFFERS), true)
 LOCAL_CFLAGS += -DENABLE_FB_TRIPLE_BUFFERS
 endif
 
+#LOCAL_CFLAGS += -DDEBUG_EXTERNAL_DISPLAY_ON_PANEL
 
-LOCAL_SHARED_LIBRARIES := liblog libcutils libMali libGLESv1_CM $(SHARED_MEM_LIBS) libutils libhardware
+LOCAL_SHARED_LIBRARIES := liblog libcutils libGLESv1_CM $(SHARED_MEM_LIBS) libutils libhardware libfbcnf
 
 LOCAL_SRC_FILES := \
 	gralloc_module.cpp \

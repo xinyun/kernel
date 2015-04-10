@@ -15,6 +15,9 @@
 static int is_actived = 0;
 
 static unsigned video_nr = 13;
+
+static u64 last_pts_us64 = 0;
+
 module_param(video_nr, uint, 0644);
 MODULE_PARM_DESC(video_nr, "videoX start number, 13 is autodetect");
 
@@ -137,18 +140,15 @@ int is_ionvideo_active(void) {
 EXPORT_SYMBOL(is_ionvideo_active);
 
 static void videoc_omx_compute_pts(struct ionvideo_dev *dev, struct vframe_s* vf) {
-    if (vf->pts) {
-        timestamp_vpts_set(vf->pts);
-        dev->receiver_register = 0;
-        dev->pts = vf->pts_us64;
-    } else if (dev->receiver_register){
-        timestamp_vpts_set(0);
-        dev->receiver_register = 0;
-        dev->pts = timestamp_vpts_get();
-    } else {
-        timestamp_vpts_inc(DUR2PTS(vf->duration));
-        dev->pts = timestamp_vpts_get();
+    if (dev->pts == 0) {
+        if (dev->is_omx_video_started == 0) {
+            dev->pts = last_pts_us64 + (DUR2PTS(vf->duration)*100/9);
+        }
     }
+    if (dev->is_omx_video_started) {    
+        dev->is_omx_video_started = 0;
+    }
+    last_pts_us64 = dev->pts;  
 }
 
 static int ionvideo_fillbuff(struct ionvideo_dev *dev, struct ionvideo_buffer *buf) {
@@ -191,14 +191,22 @@ static int ionvideo_fillbuff(struct ionvideo_dev *dev, struct ionvideo_buffer *b
                 dev->pts = vf->pts_us64;
         } else
             dev->pts = vf->pts_us64;
+
+        if (vf->width <= ((dev->width+31)&(~31))) //for omx AdaptivePlayback
+            dev->ppmgr2_dev.dst_width = vf->width;
+        if (vf->height <= dev->height)
+            dev->ppmgr2_dev.dst_height = vf->height;
         ret = ppmgr2_process(vf, &dev->ppmgr2_dev, vb->v4l2_buf.index);
         if (ret) {
             vf_put(vf, RECEIVER_NAME);
             return ret;
         }
+        videoc_omx_compute_pts(dev, vf);
         vf_put(vf, RECEIVER_NAME);
         buf->vb.v4l2_buf.timestamp.tv_sec = dev->pts >> 32;
         buf->vb.v4l2_buf.timestamp.tv_usec = dev->pts & 0xFFFFFFFF;
+        buf->vb.v4l2_buf.timecode.type = dev->ppmgr2_dev.dst_width;
+        buf->vb.v4l2_buf.timecode.flags = dev->ppmgr2_dev.dst_height;
     }
 //-------------------------------------------------------
     return 0;
@@ -301,6 +309,7 @@ static int ionvideo_thread(void *data) {
 
 static int ionvideo_start_generating(struct ionvideo_dev *dev) {
     struct ionvideo_dmaqueue *dma_q = &dev->vidq;
+    dev->is_omx_video_started = 1;
 
     dprintk(dev, 2, "%s\n", __func__);
 
@@ -671,7 +680,7 @@ static int vidioc_synchronization_dqbuf(struct file *file, void *priv, struct v4
 
     	buf = container_of(vb, struct ionvideo_buffer, vb);
     	if(dev->is_video_started == 0){
-		printk("Execute the VIDEO_START cmd. pts=%x\n", buf->pts);
+		printk("Execute the VIDEO_START cmd. pts=%llx\n", buf->pts);
         	tsync_avevent_locked(VIDEO_START, buf->pts ? buf->pts : timestamp_vpts_get());        
         	d = 0;
         	dev->is_video_started=1;
@@ -732,12 +741,6 @@ static int vidioc_synchronization_dqbuf(struct file *file, void *priv, struct v4
 
 static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p){
     if (freerun_mode == 0) {
-        static int t = 0;
-        if (t == timestamp_pcrscr_get()) {
-            return -EAGAIN;
-        } else {
-            t = timestamp_pcrscr_get();
-        }
         return vidioc_synchronization_dqbuf(file, priv, p);
     }
     return vb2_ioctl_dqbuf(file, priv, p);
@@ -846,10 +849,12 @@ static int video_receiver_event_fun(int type, void* data, void* private_data) {
 
     if (type == VFRAME_EVENT_PROVIDER_UNREG) {
         dev->receiver_register = 0;
+        dev->is_omx_video_started = 0;
         tsync_avevent(VIDEO_STOP, 0);
         printk("unreg:ionvideo\n");
     }else if (type == VFRAME_EVENT_PROVIDER_REG) {
         dev->receiver_register = 1;
+        dev->is_omx_video_started = 1;
         dev->ppmgr2_dev.interlaced_num = 0;
         printk("reg:ionvideo\n");
     }else if (type == VFRAME_EVENT_PROVIDER_QUREY_STATE) {
@@ -943,7 +948,7 @@ static ssize_t vframe_states_show(struct class *class, struct class_attribute* a
 {
     int ret = 0;
     vframe_states_t states;
-    unsigned long flags;
+//    unsigned long flags;
 	
     if (ionvideo_vf_get_states(&states) == 0) {
         ret += sprintf(buf + ret, "vframe_pool_size=%d\n", states.vf_pool_size);

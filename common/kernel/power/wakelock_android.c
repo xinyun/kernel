@@ -24,6 +24,10 @@
 #endif
 #include "power.h"
 
+#ifdef CONFIG_MESON8B_TH12
+extern int get_early_suspend_flag(void);
+#endif
+
 enum {
 	DEBUG_EXIT_SUSPEND = 1U << 0,
 	DEBUG_WAKEUP = 1U << 1,
@@ -31,7 +35,13 @@ enum {
 	DEBUG_EXPIRE = 1U << 3,
 	DEBUG_WAKE_LOCK = 1U << 4,
 };
+
+#ifdef CONFIG_MESON8B_TH12
+static int debug_mask = DEBUG_EXIT_SUSPEND | DEBUG_WAKEUP | DEBUG_SUSPEND | DEBUG_EXPIRE;
+#else
 static int debug_mask = DEBUG_EXIT_SUSPEND | DEBUG_WAKEUP;
+#endif
+
 module_param_named(debug_mask, debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
 
 #define WAKE_LOCK_TYPE_MASK              (0x0f)
@@ -224,6 +234,13 @@ static void print_active_locks(int type)
 			else if (print_expired)
 				pr_info("wake lock %s, expired\n", lock->name);
 		} else {
+#ifdef CONFIG_MESON8B_TH12
+			if(get_early_suspend_flag() ==1 )
+			{
+				lock->flags = WAKE_LOCK_AUTO_EXPIRE;
+				lock->expires = jiffies + 10;
+			}
+#endif
 			pr_info("active wake lock %s\n", lock->name);
 			if (!(debug_mask & DEBUG_EXPIRE))
 				print_expired = false;
@@ -256,6 +273,7 @@ long has_wake_lock(int type)
 	unsigned long irqflags;
 	spin_lock_irqsave(&list_lock, irqflags);
 	ret = has_wake_lock_locked(type);
+	pr_info("has_wake_lock \n");
 	if (ret && (debug_mask & DEBUG_WAKEUP) && type == WAKE_LOCK_SUSPEND)
 		print_active_locks(type);
 	spin_unlock_irqrestore(&list_lock, irqflags);
@@ -535,6 +553,7 @@ void wake_unlock(struct wake_lock *lock)
 				queue_work(suspend_work_queue, &suspend_work);
 		}
 		if (lock == &main_wake_lock) {
+			pr_info("wake_unlock: %s\n", lock->name);
 			if (debug_mask & DEBUG_SUSPEND)
 				print_active_locks(WAKE_LOCK_SUSPEND);
 #ifdef CONFIG_WAKELOCK_STAT

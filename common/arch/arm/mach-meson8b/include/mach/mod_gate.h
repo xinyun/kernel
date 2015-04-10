@@ -32,6 +32,7 @@ typedef enum {
     MOD_USB0,
     MOD_USB1,
     MOD_SDIO,
+    MOD_ASYNCFIFO,
     MOD_MAX_NUM,
 }mod_type_t;
 

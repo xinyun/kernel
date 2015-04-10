@@ -4,6 +4,7 @@
 config GPIO_AMLOGIC
     bool "GPIO support"
     select ARCH_REQUIRE_GPIOLIB
+    select GPIO_SYSFS
     default y
     help
       This is the Amlogic GPIO interface driver

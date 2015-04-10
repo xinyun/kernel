@@ -74,6 +74,10 @@ struct stream_buf_s;
 extern s32 tsdemux_init(u32 vid, u32 aid, u32 sid, u32 pcrid, bool is_hevc);
 
 extern void tsdemux_release(void);
+extern ssize_t drm_tswrite(struct file *file,
+                             struct stream_buf_s *vbuf,
+                             struct stream_buf_s *abuf,
+                             const char __user *buf, size_t count);
 
 extern ssize_t tsdemux_write(struct file *file,
                              struct stream_buf_s *vbuf,
@@ -81,7 +85,8 @@ extern ssize_t tsdemux_write(struct file *file,
                              const char __user *buf, size_t count);
 
 extern u32 tsdemux_pcrscr_get(void);
-extern int tsdemux_pcrscr_valid(void);
+extern u8 tsdemux_pcrscr_valid(void);
+extern u32 tsdemux_first_pcrscr_get(void);
 
 int     tsdemux_class_register(void);
 void  tsdemux_class_unregister(void);

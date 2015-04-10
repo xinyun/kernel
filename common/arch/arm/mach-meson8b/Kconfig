@@ -24,6 +24,33 @@ config MESON_TRUSTZONE
 	default n
 	help
 		Enable ARM Trustzone secure extension
-endif # ARCH_MESON8
+config MESON8B_TH0
+	bool "th0 spec board"
+	default n
+	help
+		make th0 board different with others
 
+config MESON8B_TH8
+	bool "th8 spec board"
+	default n
+	help
+		make th8 board different with others
+
+config MESON8B_512M_TH01
+	bool "512m th01 spec board"
+	default n
+	help
+		make th0 board different with others
+
+config MESON8B_512M_TH8
+	bool "512m th8 spec board"
+	default n
+	help
+		make th8 board different with others
+config MESON8B_TH12
+        bool "m201_th12 spec board"
+        default n
+        help
+        	make th12 board different with others
+endif # ARCH_MESON8
 

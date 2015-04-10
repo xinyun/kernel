@@ -764,8 +764,8 @@ core_show_return:
         kfree(dec_data);
     return n;
 }
-#define KEY_READ_ATTR  (S_IRUSR|S_IRGRP)
-#define KEY_WRITE_ATTR (S_IWUSR|S_IWGRP)
+#define KEY_READ_ATTR  (S_IRUSR|S_IRGRP|S_IROTH)
+#define KEY_WRITE_ATTR (S_IWUSR|S_IWGRP|S_IWOTH)
 
 
 #define ENABLE_AML_KEY_DEBUG 0
@@ -1299,7 +1299,7 @@ static ssize_t key_name_store(struct device *dev, struct device_attribute *attr,
                              const char *buf, size_t count)
 {
 	aml_key_t * keys;
-	int i,cnt,suffix;
+	int i,cnt;
 	char *name;
 	char *cmd,*oldname=NULL,*newname;
 	if(keys_version == 0){
@@ -1430,6 +1430,10 @@ static ssize_t key_read_store(struct device *dev, struct device_attribute *attr,
 #define MAC_BT_KEY_NAME "mac_bt"
 #define MAC_WIFI_KEY_NAME "mac_wifi"
 #define HDCP_KEY_NAME "hdcp"
+#if defined(CONFIG_MESON8B_TH8) || defined(CONFIG_MESON8B_512M_TH8)
+#define MODEL_KEY_NAME   "model"
+#define HW_KEY_NAME    "hw"
+#endif
 
 static char twoASCByteToByte(char c1, char c2)
 {
@@ -1515,6 +1519,92 @@ static ssize_t key_usid_store(struct device *dev, struct device_attribute *attr,
 }
 #endif
 
+#if defined(CONFIG_MESON8B_TH8) || defined(CONFIG_MESON8B_512M_TH8)
+static ssize_t key_model_show(struct device *dev, struct device_attribute *attr,
+                      char *buf)
+{
+    aml_key_t * keys,*modelkey=NULL;
+    int i,j,err=0;
+    int count;
+    char * data=NULL;
+    keys = key_schematic[keys_version]->keys;
+    for(i=0;i<key_schematic[keys_version]->count;i++)
+    {
+        if(strcmp(MODEL_KEY_NAME,keys[i].name) == 0){
+        	modelkey = &keys[i];
+        	break;
+	    }
+    }
+   	if(modelkey == NULL){
+        printk("don't set %s key-name and key-data,%s:%d\n",MODEL_KEY_NAME,__func__,__LINE__);
+        return -EINVAL;
+    }
+
+    data = kzalloc(CONFIG_MAX_STORAGE_KEYSIZE, GFP_KERNEL);
+    if(data == NULL){
+        printk("don't kzalloc mem %s:%d\n",__func__,__LINE__);
+        return -ENOMEM;
+    }
+    memset(data,0,CONFIG_MAX_STORAGE_KEYSIZE);
+    err = key_core_show(dev, (struct device_attribute*)modelkey,data);
+    if(err > 0){
+        count = err;
+        for(i=0,j=0;i<count;j++){
+            buf[j] = twoASCByteToByte(data[i],data[i+1]);
+            i += 2;
+        }
+        err = j;
+    }
+   
+    if(data){
+       kfree(data);
+    }
+    return err;
+}
+
+static ssize_t key_hw_show(struct device *dev, struct device_attribute *attr,
+     char *buf)
+{
+    aml_key_t * keys,*hwkey=NULL;
+    int i,j,err=0;
+    int count;
+    char * data=NULL;
+    keys = key_schematic[keys_version]->keys;
+    for(i=0;i<key_schematic[keys_version]->count;i++)
+    {
+    	if(strcmp(HW_KEY_NAME,keys[i].name) == 0){
+	    	hwkey = &keys[i];
+	    	break;
+		}
+	}
+	if(hwkey == NULL){
+	    printk("don't set %s key-name and key-data,%s:%d\n",HW_KEY_NAME,__func__,__LINE__);
+	    return -EINVAL;
+	}
+
+    data = kzalloc(CONFIG_MAX_STORAGE_KEYSIZE, GFP_KERNEL);
+    if(data == NULL){
+        printk("don't kzalloc mem %s:%d\n",__func__,__LINE__);
+        return -ENOMEM;
+    }
+	memset(data,0,CONFIG_MAX_STORAGE_KEYSIZE);
+	err = key_core_show(dev, (struct device_attribute*)hwkey,data);
+	if(err > 0){
+	    count = err;
+	    for(i=0,j=0;i<count;j++){
+	        buf[j] = twoASCByteToByte(data[i],data[i+1]);
+	        i += 2;
+	    }
+	    err = j;
+	}
+	    
+	if(data){
+	    kfree(data);
+	}
+	return err;
+}
+#endif
+
 struct key_new_node{
 	struct device_attribute  attr;
 	char name[16];
@@ -1538,6 +1628,14 @@ static struct key_new_node key_node_name[]={
 	[5]={
 		.name = HDCP_KEY_NAME,
 	},
+#if defined(CONFIG_MESON8B_TH8) || defined(CONFIG_MESON8B_512M_TH8)
+	[6]={
+	    .name = MODEL_KEY_NAME,
+	},
+	[7]={
+	    .name = HW_KEY_NAME,
+	},
+#endif
 };
 static ssize_t key_node_set(struct device *dev)
 {
@@ -1617,6 +1715,31 @@ static ssize_t key_node_set(struct device *dev)
         printk("%s:%d\n", __FILE__, __LINE__);
         return -EINVAL;
     }
+
+#if defined(CONFIG_MESON8B_TH8) || defined(CONFIG_MESON8B_512M_TH8)
+	i=6;
+	mode = KEY_READ_ATTR ;
+	key_new[i].attr.show = key_model_show;
+	key_new[i].attr.attr.name = &key_new[i].name[0];
+	key_new[i].attr.attr.mode = mode;
+	ret = device_create_file(dev, (const struct device_attribute *) &key_new[i].attr);
+	if (ret < 0)
+	{
+	    printk("%s:%d\n", __FILE__, __LINE__);
+	    return -EINVAL;
+	}
+	i=7;
+	mode = KEY_READ_ATTR ;
+	key_new[i].attr.show = key_hw_show;
+	key_new[i].attr.attr.name = &key_new[i].name[0];
+	key_new[i].attr.attr.mode = mode;
+	ret = device_create_file(dev, (const struct device_attribute *) &key_new[i].attr);
+	if (ret < 0)
+	{
+	    printk("%s:%d\n", __FILE__, __LINE__);
+	    return -EINVAL;
+	}
+#endif
     return 0;
 }
 

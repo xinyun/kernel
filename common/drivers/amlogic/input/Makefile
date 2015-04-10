@@ -14,3 +14,4 @@ obj-y	+= holdkey/
 obj-y   += call_key/
 obj-y   += sensor/
 obj-y   += gpio_key/
+obj-y   += vfd/

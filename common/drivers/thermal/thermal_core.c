@@ -36,7 +36,7 @@
 #include <net/netlink.h>
 #include <net/genetlink.h>
 
-#include "thermal_core.h"
+#include <linux/thermal_core.h>
 
 MODULE_AUTHOR("Zhang Rui");
 MODULE_DESCRIPTION("Generic thermal management sysfs support");
@@ -1446,7 +1446,7 @@ void thermal_cdev_update(struct thermal_cooling_device *cdev)
 			continue;
 		if (instance->target > target)
 			target = instance->target;
-		pr_debug( "instance->target=%d,target=%d\n",instance->target,target);
+		pr_debug( "instance->target=%ld,target=%ld\n",instance->target,target);
 	}
 	mutex_unlock(&cdev->lock);
 	cdev->ops->set_cur_state(cdev, target);

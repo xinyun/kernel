@@ -411,23 +411,27 @@ static int ppmgr_receiver_event_fun(int type, void *data, void *private_data)
                 return RECEIVER_INACTIVE;
             }
             break;
-            case VFRAME_EVENT_PROVIDER_START:
+        case VFRAME_EVENT_PROVIDER_START:
 #ifdef DDD
         printk("register now \n");
 #endif
             vf_ppmgr_reg_provider();
             break;
-            case VFRAME_EVENT_PROVIDER_UNREG:
+        case VFRAME_EVENT_PROVIDER_UNREG:
 #ifdef DDD
         printk("unregister now \n");
 #endif
             vf_ppmgr_unreg_provider();
             break;
-            case VFRAME_EVENT_PROVIDER_LIGHT_UNREG:
+        case VFRAME_EVENT_PROVIDER_LIGHT_UNREG:
             break;
-            case VFRAME_EVENT_PROVIDER_RESET       :
-            	vf_ppmgr_reset(0);
-            	break;
+        case VFRAME_EVENT_PROVIDER_RESET       :
+            vf_ppmgr_reset(0);
+            break;
+        case VFRAME_EVENT_PROVIDER_FR_HINT:
+        case VFRAME_EVENT_PROVIDER_FR_END_HINT:
+            vf_notify_receiver(PROVIDER_NAME,type,data);
+            break;
         default:
             break;
     }
@@ -675,6 +679,9 @@ static int process_vf_deinterlace_nv21(vframe_t *vf, ge2d_context_t *context, co
     if (!vf)
         return -1;
 
+    if(vf->type & VIDTYPE_MVC){
+		return 0;
+	}
     if ((vf->canvas0Addr == vf->canvas1Addr)||(ppmgr_device.angle == 0)){
         //printk("++ppmgr interlace skip.\n");
         return 0;
@@ -830,6 +837,9 @@ static int process_vf_deinterlace(vframe_t *vf, ge2d_context_t *context, config_
     if (!vf)
         return -1;
 
+    if(vf->type & VIDTYPE_MVC){
+		return 0;
+	}
     if ((vf->canvas0Addr == vf->canvas1Addr)||(ppmgr_device.bypass)||(ppmgr_device.angle == 0)){
         //printk("++ppmgr interlace skip.\n");
         return 0;
@@ -1293,6 +1303,9 @@ static void process_vf_rotate(vframe_t *vf, ge2d_context_t *context, config_para
         pp_vf->dec_frame = NULL;
 #endif
 
+   if(vf->type & VIDTYPE_MVC){
+		pp_vf->dec_frame = vf;
+	}
     if (pp_vf->dec_frame) {
         /* bypass mode */
         *new_vf = *vf;
@@ -1325,7 +1338,7 @@ static void process_vf_rotate(vframe_t *vf, ge2d_context_t *context, config_para
     new_vf->type = VIDTYPE_VIU_444 | VIDTYPE_VIU_SINGLE_PLANE | VIDTYPE_VIU_FIELD;
     new_vf->canvas0Addr = new_vf->canvas1Addr = index2canvas(pp_vf->index);
     new_vf->orientation = vf->orientation;
-
+    new_vf->flag = vf->flag;
 
     if(vf->type&VIDTYPE_VIU_422){
         if(interlace_mode == VIDTYPE_INTERLACE_TOP)
@@ -1774,6 +1787,7 @@ static void process_vf_change(vframe_t *vf, ge2d_context_t *context, config_para
     temp_vf.duration_pulldown = vf->duration_pulldown;
     temp_vf.pts = vf->pts;
     temp_vf.pts_us64 = vf->pts_us64;
+    temp_vf.flag = vf->flag;
     temp_vf.type = VIDTYPE_VIU_444 | VIDTYPE_VIU_SINGLE_PLANE | VIDTYPE_VIU_FIELD;
     temp_vf.canvas0Addr = temp_vf.canvas1Addr = ass_index;
     cur_angle = (ppmgr_device.videoangle + vf->orientation)%4;
@@ -2353,8 +2367,11 @@ static int ppmgr_task(void *data)
             int process_type = TYPE_NONE;
             platform_type_t plarform_type;
             vf = ppmgr_vf_get_dec();
+            if(!vf)
+                break;
             if (vf && ppmgr_device.started) {
                 if (!(vf->type & (VIDTYPE_VIU_422 | VIDTYPE_VIU_444 | VIDTYPE_VIU_NV21)) || (vf->type & VIDTYPE_INTERLACE) || ppmgr_device.disable_prot
+                || (vf->type & VIDTYPE_MVC)
 #ifdef CONFIG_POST_PROCESS_MANAGER_PPSCALER
                 || amvideo_get_scaler_mode()
 #endif
@@ -2364,18 +2381,19 @@ static int ppmgr_task(void *data)
                 ) {
                     ppmgr_device.use_prot = 0;
                     set_video_angle(0);
-                    ppmgr_device.angle = ppmgr_device.global_angle;
+                    //ppmgr_device.angle = ppmgr_device.global_angle;
                     ppmgr_device.videoangle = (ppmgr_device.angle + ppmgr_device.orientation) % 4;
                     set_property_change(1);
                 } else {
                     ppmgr_device.use_prot = 1;
-                    ppmgr_device.angle = 0;
+                    //ppmgr_device.angle = 0;
                     ppmgr_device.videoangle = (ppmgr_device.angle + ppmgr_device.orientation) % 4;
                     set_property_change(1);
                     //set_video_angle(ppmgr_device.global_angle);
                 }
                 ppmgr_device.started = 0;
             }
+            vf->video_angle = (ppmgr_device.angle + ppmgr_device.orientation + vf->orientation)%4;
             plarform_type = get_platform_type();
             if( plarform_type == PLATFORM_TV){
             	process_type = get_tv_process_type(vf);
@@ -2398,6 +2416,8 @@ static int ppmgr_task(void *data)
 #else
             int ret = 0;
             vf = ppmgr_vf_get_dec();
+            if(!vf)
+                break;            
             if (vf && ppmgr_device.started) {
                 if (!(vf->type & (VIDTYPE_VIU_422 | VIDTYPE_VIU_444 | VIDTYPE_VIU_NV21)) || (vf->type & VIDTYPE_INTERLACE) || ppmgr_device.disable_prot
 #ifdef CONFIG_POST_PROCESS_MANAGER_PPSCALER
@@ -2409,18 +2429,19 @@ static int ppmgr_task(void *data)
                 ) {
                     ppmgr_device.use_prot = 0;
                     set_video_angle(0);
-                    ppmgr_device.angle = ppmgr_device.global_angle;
+                    //ppmgr_device.angle = ppmgr_device.global_angle;
                     ppmgr_device.videoangle = (ppmgr_device.angle + ppmgr_device.orientation) % 4;
                     set_property_change(1);
                 } else {
                     ppmgr_device.use_prot = 1;
                     set_video_angle(ppmgr_device.global_angle);
-                    ppmgr_device.angle = 0;
+                    //ppmgr_device.angle = 0;
                     ppmgr_device.videoangle = (ppmgr_device.angle + ppmgr_device.orientation) % 4;
                     set_property_change(1);
                 }
                 ppmgr_device.started = 0;
             }
+            vf->video_angle = (ppmgr_device.angle + ppmgr_device.orientation + vf->orientation)%4;
             ret = process_vf_deinterlace(vf, context, &ge2d_config);
             process_vf_rotate(vf, context, &ge2d_config,(ret>0)?ret:0);
 #endif

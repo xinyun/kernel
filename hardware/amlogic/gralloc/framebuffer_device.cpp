@@ -17,7 +17,6 @@
  */
 
 #include <string.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -25,15 +24,12 @@
 
 #include <cutils/log.h>
 #include <cutils/atomic.h>
-#include <cutils/properties.h>
 #include <hardware/hardware.h>
 #include <hardware/gralloc.h>
+#include "gralloc_priv.h"
+#include <hardware/hwcomposer_defs.h>
 
 #include <GLES/gl.h>
-
-#ifndef __gl_h_
-#error a
-#endif
 
 #ifdef MALI_VSYNC_EVENT_REPORT_ENABLE
 #include "gralloc_vsync_report.h"
@@ -43,15 +39,14 @@
 #include "gralloc_priv.h"
 #include "gralloc_helper.h"
 
-// numbers of buffers for page flipping
-#define NUM_BUFFERS NUM_FB_BUFFERS 
+//TODO: NEED CHANGE NAME TO BE MORE READABLE!!
+struct framebuffer_t{
+    struct framebuffer_device_t base;
+    struct framebuffer_info_t fb_info;
+    struct private_handle_t*  fb_hnd;
+};
 
 static int swapInterval = 1;
-
-enum
-{
-	PAGE_FLIP = 0x00000001,
-};
 
 static int fb_set_swap_interval(struct framebuffer_device_t* dev, int interval)
 {
@@ -69,370 +64,122 @@ static int fb_set_swap_interval(struct framebuffer_device_t* dev, int interval)
 	return 0;
 }
 
-static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
+static int init_frame_buffer(struct private_module_t* module,struct framebuffer_t* fb)
 {
+    if(fb->fb_hnd != NULL) {
+        ALOGD("init already called before.");
+        return 0;
+    }
+	pthread_mutex_lock(&module->lock);
+    framebuffer_info_t* fbinfo = &(fb->fb_info);
+    fbinfo->displayType = HWC_DISPLAY_PRIMARY;
+    fbinfo->fbIdx = getOsdIdx(fbinfo->displayType);
+
+	int err = init_frame_buffer_locked(fbinfo);
+    int bufferSize = fbinfo->finfo.line_length * fbinfo->info.yres;
+
+    // Create a "fake" buffer object for the entire frame buffer memory, and store it in the module
+	fb->fb_hnd = new private_handle_t(private_handle_t::PRIV_FLAGS_FRAMEBUFFER, 0, fbinfo->fbSize, 0,
+	                                           0, fbinfo->fd, bufferSize);
+    ALOGD("init_frame_buffer get frame size %d",bufferSize);
+    
+    //Register the handle.
+    module->base.registerBuffer(&(module->base),fb->fb_hnd);
+    
+	pthread_mutex_unlock(&module->lock);
+	return err;
+}
+
+static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer){
+	private_module_t* priv_t = reinterpret_cast<private_module_t*>(dev->common.module);
+    framebuffer_t* fb = reinterpret_cast<framebuffer_t*>(dev);
+    framebuffer_info_t* fbinfo = &(fb->fb_info);
+    int display_type = fbinfo->displayType;
+    
+/*	framebuffer_mapper_t* m = &(priv_t->fb_primary);
+#ifdef DEBUG_EXTERNAL_DISPLAY_ON_PANEL
+	if(display_type == HWC_DISPLAY_EXTERNAL)
+		ALOGD("fbpost hdmi on panel");
+#else
+	if(display_type == HWC_DISPLAY_EXTERNAL)
+		m = &(priv_t->fb_external);
+#endif
+*/
 	if (private_handle_t::validate(buffer) < 0)
 	{
 		return -EINVAL;
 	}
 
-	private_handle_t const* hnd = reinterpret_cast<private_handle_t const*>(buffer);
-	private_module_t* m = reinterpret_cast<private_module_t*>(dev->common.module);
-
-	if (m->currentBuffer)
+    if (fbinfo->currentBuffer)
 	{
-		m->base.unlock(&m->base, m->currentBuffer);
-		m->currentBuffer = 0;
+		priv_t->base.unlock(&priv_t->base, fbinfo->currentBuffer);
+		fbinfo->currentBuffer = 0;
 	}
 
-	if (hnd->flags & private_handle_t::PRIV_FLAGS_FRAMEBUFFER)
-	{
-		m->base.lock(&m->base, buffer, private_module_t::PRIV_USAGE_LOCKED_FOR_POST, 
-				0, 0, m->info.xres, m->info.yres, NULL);
+	private_handle_t const* hnd = reinterpret_cast<private_handle_t const*>(buffer);
+	if (hnd->flags & private_handle_t::PRIV_FLAGS_FRAMEBUFFER){
+    	priv_t->base.lock(&priv_t->base, buffer, private_module_t::PRIV_USAGE_LOCKED_FOR_POST,
+    	0, 0, fbinfo->info.xres, fbinfo->info.yres, NULL);
 
-		const size_t offset = hnd->base - m->framebuffer->base;
-		int interrupt;
-		m->info.activate = FB_ACTIVATE_VBL;
-		m->info.yoffset = offset / m->finfo.line_length;
+        int rtn = fb_post_locked(fbinfo,buffer);
+        if(rtn < 0){
+            //post fail.
+            ALOGD("fb_post_locked return error %d",rtn);
+            priv_t->base.unlock(&priv_t->base, buffer); 
+            return rtn;
+        }
 
-#ifdef STANDARD_LINUX_SCREEN
-#define FBIO_WAITFORVSYNC       _IOW('F', 0x20, __u32)
-#define S3CFB_SET_VSYNC_INT	_IOW('F', 206, unsigned int)
-		if (ioctl(m->framebuffer->fd, FBIOPAN_DISPLAY, &m->info) == -1) 
-		{
-			AERR( "FBIOPAN_DISPLAY failed for fd: %d", m->framebuffer->fd );
-			m->base.unlock(&m->base, buffer); 
-			return 0;
-		}
-#if PLATFORM_SDK_VERSION >= 16
-		if (swapInterval == 1 && !(hnd->usage & GRALLOC_USAGE_HW_COMPOSER))
-#else
-		if (swapInterval == 1)
-#endif
-		{
-			// enable VSYNC
-			interrupt = 1;
-			if(ioctl(m->framebuffer->fd, S3CFB_SET_VSYNC_INT, &interrupt) < 0) 
-			{
-				AERR( "S3CFB_SET_VSYNC_INT enable failed for fd: %d", m->framebuffer->fd );
-				return 0;
-			}
-			// wait for VSYNC
-#ifdef MALI_VSYNC_EVENT_REPORT_ENABLE
-			gralloc_mali_vsync_report(MALI_VSYNC_EVENT_BEGIN_WAIT);
-#endif
-			int crtc = 0;
-			if(ioctl(m->framebuffer->fd, FBIO_WAITFORVSYNC, &crtc) < 0)
-			{
-				AERR( "FBIO_WAITFORVSYNC failed for fd: %d", m->framebuffer->fd );
-#ifdef MALI_VSYNC_EVENT_REPORT_ENABLE
-				gralloc_mali_vsync_report(MALI_VSYNC_EVENT_END_WAIT);
-#endif
-				return 0;
-			}
-#ifdef MALI_VSYNC_EVENT_REPORT_ENABLE
-			gralloc_mali_vsync_report(MALI_VSYNC_EVENT_END_WAIT);
-#endif
-			// disable VSYNC
-			interrupt = 0;
-			if(ioctl(m->framebuffer->fd, S3CFB_SET_VSYNC_INT, &interrupt) < 0) 
-			{
-				AERR( "S3CFB_SET_VSYNC_INT disable failed for fd: %d", m->framebuffer->fd );
-				return 0;
-			}
-		}
-#else 
-		/*Standard Android way*/
-#ifdef MALI_VSYNC_EVENT_REPORT_ENABLE
-		gralloc_mali_vsync_report(MALI_VSYNC_EVENT_BEGIN_WAIT);
-#endif
-		if (ioctl(m->framebuffer->fd, FBIOPUT_VSCREENINFO, &m->info) == -1) 
-		{
-			AERR( "FBIOPUT_VSCREENINFO failed for fd: %d", m->framebuffer->fd );
-#ifdef MALI_VSYNC_EVENT_REPORT_ENABLE
-			gralloc_mali_vsync_report(MALI_VSYNC_EVENT_END_WAIT);
-#endif
-			m->base.unlock(&m->base, buffer); 
-			return -errno;
-		}
-#ifdef MALI_VSYNC_EVENT_REPORT_ENABLE
-		gralloc_mali_vsync_report(MALI_VSYNC_EVENT_END_WAIT);
-#endif
-#endif
-
-		m->currentBuffer = buffer;
-	} 
-	else
-	{
+	} else {
 		void* fb_vaddr;
 		void* buffer_vaddr;
 
-		m->base.lock(&m->base, m->framebuffer, GRALLOC_USAGE_SW_WRITE_RARELY, 
-				0, 0, m->info.xres, m->info.yres, &fb_vaddr);
+		priv_t->base.lock(&priv_t->base, priv_t->fb_primary.framebuffer, GRALLOC_USAGE_SW_WRITE_RARELY, 
+				0, 0, fbinfo->info.xres, fbinfo->info.yres, &fb_vaddr);
 
-		m->base.lock(&m->base, buffer, GRALLOC_USAGE_SW_READ_RARELY, 
-				0, 0, m->info.xres, m->info.yres, &buffer_vaddr);
+		priv_t->base.lock(&priv_t->base, buffer, GRALLOC_USAGE_SW_READ_RARELY, 
+				0, 0, fbinfo->info.xres, fbinfo->info.yres, &buffer_vaddr);
 
-		memcpy(fb_vaddr, buffer_vaddr, m->finfo.line_length * m->info.yres);
+		memcpy(fb_vaddr, buffer_vaddr, fbinfo->finfo.line_length * fbinfo->info.yres);
 
-		m->base.unlock(&m->base, buffer); 
-		m->base.unlock(&m->base, m->framebuffer); 
+		priv_t->base.unlock(&priv_t->base, buffer); 
+		priv_t->base.unlock(&priv_t->base, priv_t->fb_primary.framebuffer); 
 	}
 
-	return 0;
-}
-
-static int bits_per_pixel(void)
-{
-	char fb_bits[PROPERTY_VALUE_MAX];
-	int bits_per_pixel = 16;
-
-	if (property_get("sys.fb.bits", fb_bits, NULL) > 0 && atoi(fb_bits) == 32)
-	{
-		return 32;
-	}
-	return 16;
-}
-
-int init_frame_buffer_locked(struct private_module_t* module)
-{
-	if (module->framebuffer)
-	{
-		return 0; // Nothing to do, already initialized
-	}
-        
-	char const * const device_template[] =
-	{
-		"/dev/graphics/fb%u",
-		"/dev/fb%u",
-		NULL
-	};
-
-	int fd = -1;
-	int i = 0;
-	char name[64];
-
-	while ((fd == -1) && device_template[i])
-	{
-		snprintf(name, 64, device_template[i], 0);
-		fd = open(name, O_RDWR, 0);
-		i++;
-	}
-
-	if (fd < 0)
-	{
-		return -errno;
-	}
-
-	struct fb_fix_screeninfo finfo;
-	if (ioctl(fd, FBIOGET_FSCREENINFO, &finfo) == -1)
-	{
-		return -errno;
-	}
-
-	struct fb_var_screeninfo info;
-	if (ioctl(fd, FBIOGET_VSCREENINFO, &info) == -1)
-	{
-		return -errno;
-	}
-
-	info.reserved[0] = 0;
-	info.reserved[1] = 0;
-	info.reserved[2] = 0;
-	info.xoffset = 0;
-	info.yoffset = 0;
-	info.activate = FB_ACTIVATE_NOW;
-
-	if (bits_per_pixel() == 16)
-	{
-		/*
-		 * Explicitly request 5/6/5
-		 */
-		info.bits_per_pixel = 16;
-		info.red.offset     = 11;
-		info.red.length     = 5;
-		info.green.offset   = 5;
-		info.green.length   = 6;
-		info.blue.offset    = 0;
-		info.blue.length    = 5;
-		info.transp.offset  = 0;
-		info.transp.length  = 0;
-	}
-	else
-	{
-		/*
-	 	 * Explicitly request 8/8/8/8
-	 	 */
-		info.bits_per_pixel = 32;
-		info.red.offset     = 0;
-		info.red.length     = 8;
-		info.green.offset   = 8;
-		info.green.length   = 8;
-		info.blue.offset    = 16;
-		info.blue.length    = 8;
-		info.transp.offset  = 24;
-		info.transp.length  = 8;
-	}
-
-	/*
-	 * Request NUM_BUFFERS screens (at lest 2 for page flipping)
-	 */
-	info.yres_virtual = info.yres * NUM_BUFFERS;
-
-	uint32_t flags = PAGE_FLIP;
-	if (ioctl(fd, FBIOPUT_VSCREENINFO, &info) == -1)
-	{
-		info.yres_virtual = info.yres;
-		flags &= ~PAGE_FLIP;
-		AWAR( "FBIOPUT_VSCREENINFO failed, page flipping not supported fd: %d", fd );
-	}
-
-	if (info.yres_virtual < info.yres * 2)
-	{
-		// we need at least 2 for page-flipping
-		info.yres_virtual = info.yres;
-		flags &= ~PAGE_FLIP;
-		AWAR( "page flipping not supported (yres_virtual=%d, requested=%d)", info.yres_virtual, info.yres*2 );
-	}
-
-	if (ioctl(fd, FBIOGET_VSCREENINFO, &info) == -1)
-	{
-		return -errno;
-	}
-
-	int refreshRate = 0;
-	if ( info.pixclock > 0 )
-	{
-		refreshRate = 1000000000000000LLU /
-		(
-			uint64_t( info.upper_margin + info.lower_margin + info.yres + info.hsync_len )
-			* ( info.left_margin  + info.right_margin + info.xres + info.vsync_len )
-			* info.pixclock
-		);
-	}
-	else
-	{
-		AWAR( "fbdev pixclock is zero for fd: %d", fd );
-	}
-
-	if (refreshRate == 0)
-	{
-		//refreshRate = 50*1000;  // 50 Hz
-		refreshRate = 60*1000;  // 60 Hz
-	}
-
-	if (int(info.width) <= 0 || int(info.height) <= 0)
-	{
-		// the driver doesn't return that information
-		// default to 160 dpi
-		info.width  = ((info.xres * 25.4f)/160.0f + 0.5f);
-		info.height = ((info.yres * 25.4f)/160.0f + 0.5f);
-	}
-
-	float xdpi = (info.xres * 25.4f) / info.width;
-	float ydpi = (info.yres * 25.4f) / info.height;
-	float fps  = refreshRate / 1000.0f;
-
-	AINF("using (fd=%d)\n"
-	     "id           = %s\n"
-	     "xres         = %d px\n"
-	     "yres         = %d px\n"
-	     "xres_virtual = %d px\n"
-	     "yres_virtual = %d px\n"
-	     "bpp          = %d\n"
-	     "r            = %2u:%u\n"
-	     "g            = %2u:%u\n"
-	     "b            = %2u:%u\n",
-	     fd,
-	     finfo.id,
-	     info.xres,
-	     info.yres,
-	     info.xres_virtual,
-	     info.yres_virtual,
-	     info.bits_per_pixel,
-	     info.red.offset, info.red.length,
-	     info.green.offset, info.green.length,
-	     info.blue.offset, info.blue.length);
-
-	AINF("width        = %d mm (%f dpi)\n"
-	     "height       = %d mm (%f dpi)\n"
-	     "refresh rate = %.2f Hz\n",
-	     info.width,  xdpi,
-	     info.height, ydpi,
-	     fps);
-
-	if (ioctl(fd, FBIOGET_FSCREENINFO, &finfo) == -1)
-	{
-		return -errno;
-	}
-
-    if (finfo.smem_len <= 0)
-	{
-		return -errno;
-	}
-
-	module->flags = flags;
-	module->info = info;
-	module->finfo = finfo;
-	module->xdpi = xdpi;
-	module->ydpi = ydpi;
-	module->fps = fps;
-
-	/*
-	 * map the framebuffer
-	 */
-	size_t fbSize = round_up_to_page_size(finfo.line_length * info.yres_virtual);
-	void* vaddr = mmap(0, fbSize, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	if (vaddr == MAP_FAILED) 
-	{
-		AERR( "Error mapping the framebuffer (%s)", strerror(errno) );
-		return -errno;
-	}
-
-	memset(vaddr, 0, fbSize);
-
-	// Create a "fake" buffer object for the entire frame buffer memory, and store it in the module
-	module->framebuffer = new private_handle_t(private_handle_t::PRIV_FLAGS_FRAMEBUFFER, 0, fbSize, intptr_t(vaddr),
-	                                           0, dup(fd), 0);
-
-	module->numBuffers = info.yres_virtual / info.yres;
-	module->bufferMask = 0;
-	
-#if GRALLOC_ARM_UMP_MODULE
-	#ifdef IOCTL_GET_FB_UMP_SECURE_ID
-	ioctl(fd, IOCTL_GET_FB_UMP_SECURE_ID, &module->framebuffer->ump_id);
-	#endif
-	if ( (int)UMP_INVALID_SECURE_ID != module->framebuffer->ump_id )
-	{
-		AINF("framebuffer accessed with UMP secure ID %i\n", module->framebuffer->ump_id);
-	}
-#endif
-
-	return 0;
-}
-
-static int init_frame_buffer(struct private_module_t* module)
-{
-	pthread_mutex_lock(&module->lock);
-	int err = init_frame_buffer_locked(module);
-	pthread_mutex_unlock(&module->lock);
-	return err;
+    return 0;
 }
 
 static int fb_close(struct hw_device_t *device)
 {
-	framebuffer_device_t* dev = reinterpret_cast<framebuffer_device_t*>(device);
+	framebuffer_t* dev = reinterpret_cast<framebuffer_t*>(device);
 	if (dev)
 	{
 #if GRALLOC_ARM_UMP_MODULE
 		ump_close();
 #endif
-		delete dev;
+        if(dev->fb_hnd) {
+            #if 0
+            hw_module_t * pmodule = NULL;
+    		private_module_t *m = NULL;
+    		if (hw_get_module(GRALLOC_HARDWARE_MODULE_ID, (const hw_module_t **)&pmodule) == 0)
+    		{
+    			m = reinterpret_cast<private_module_t *>(pmodule);
+                m->base.unregisterBuffer(&(m->base),dev->fb_hnd);
+    		}
+            close(dev->fb_info.fd);
+            dev->fb_info.fd= -1;
+            #endif
+
+            delete dev->fb_hnd;
+            dev->fb_hnd = 0;
+        }
+
+        delete dev;
 	}
+
 	return 0;
 }
 
-int compositionComplete(struct framebuffer_device_t* dev)
+int compositionComplete(struct framebuffer_device_t *dev)
 {
 	/* By doing a finish here we force the GL driver to start rendering
 	   all the drawcalls up to this point, and to wait for the rendering to be complete.*/
@@ -442,57 +189,68 @@ int compositionComplete(struct framebuffer_device_t* dev)
 	   synchronously in the same thread, and not asynchronoulsy in a background thread later.
 	   The SurfaceFlinger requires this behaviour since it releases the lock on all the
 	   SourceBuffers (Layers) after the compositionComplete() function returns.
-	   However this "bad" behaviour by SurfaceFlinger should not affect performance, 
-	   since the Applications that render the SourceBuffers (Layers) still get the 
+	   However this "bad" behaviour by SurfaceFlinger should not affect performance,
+	   since the Applications that render the SourceBuffers (Layers) still get the
 	   full renderpipeline using asynchronous rendering. So they perform at maximum speed,
 	   and because of their complexity compared to the Surface flinger jobs, the Surface flinger
-	   is normally faster even if it does everyhing synchronous and serial. 
+	   is normally faster even if it does everyhing synchronous and serial.
 	   */
 	return 0;
 }
 
-int framebuffer_device_open(hw_module_t const* module, const char* name, hw_device_t** device)
+int framebuffer_device_open(hw_module_t const *module, const char *name, hw_device_t **device)
 {
 	int status = -EINVAL;
-
+#if 0    
 	alloc_device_t* gralloc_device;
 	status = gralloc_open(module, &gralloc_device);
+
 	if (status < 0)
 	{
 		return status;
 	}
+#endif
 
-	private_module_t* m = (private_module_t*)module;
-	status = init_frame_buffer(m);
+    /*Init the framebuffer data*/
+    framebuffer_t *fb = new framebuffer_t();
+	memset(fb, 0, sizeof(*fb));
+
+    framebuffer_device_t *dev = &(fb->base);
+    framebuffer_info_t *fbinfo = &(fb->fb_info);
+
+    /*get gralloc module to register framebuffer*/
+	private_module_t* priv_t = (private_module_t*)module;
+	framebuffer_mapper_t* m =&(priv_t->fb_primary);
+	status = init_frame_buffer(priv_t,fb);
+
 	if (status < 0)
 	{
+	#if 0
 		gralloc_close(gralloc_device);
+    #endif
+        delete fb;
 		return status;
 	}
-
-	/* initialize our state here */
-	framebuffer_device_t *dev = new framebuffer_device_t();
-	memset(dev, 0, sizeof(*dev));
 
 	/* initialize the procs */
 	dev->common.tag = HARDWARE_DEVICE_TAG;
 	dev->common.version = 0;
-	dev->common.module = const_cast<hw_module_t*>(module);
+	dev->common.module = const_cast<hw_module_t *>(module);
 	dev->common.close = fb_close;
 	dev->setSwapInterval = fb_set_swap_interval;
 	dev->post = fb_post;
 	dev->setUpdateRect = 0;
 	dev->compositionComplete = &compositionComplete;
 
-	int stride = m->finfo.line_length / (m->info.bits_per_pixel >> 3);
+	int stride = fbinfo->finfo.line_length / (fbinfo->info.bits_per_pixel >> 3);
 	const_cast<uint32_t&>(dev->flags) = 0;
-	const_cast<uint32_t&>(dev->width) = m->info.xres;
-	const_cast<uint32_t&>(dev->height) = m->info.yres;
+	const_cast<uint32_t&>(dev->width) = fbinfo->info.xres;
+	const_cast<uint32_t&>(dev->height) = fbinfo->info.yres;
 	const_cast<int&>(dev->stride) = stride;
 	const_cast<int&>(dev->format) = (bits_per_pixel() == 16) ? HAL_PIXEL_FORMAT_RGB_565 : HAL_PIXEL_FORMAT_RGBX_8888;
-	const_cast<float&>(dev->xdpi) = m->xdpi;
-	const_cast<float&>(dev->ydpi) = m->ydpi;
-	const_cast<float&>(dev->fps) = m->fps;
+	const_cast<float&>(dev->xdpi) = fbinfo->xdpi;
+	const_cast<float&>(dev->ydpi) = fbinfo->ydpi;
+	const_cast<float&>(dev->fps) = fbinfo->fps;
 	const_cast<int&>(dev->minSwapInterval) = 0;
 	const_cast<int&>(dev->maxSwapInterval) = 1;
 	*device = &dev->common;
@@ -500,3 +258,5 @@ int framebuffer_device_open(hw_module_t const* module, const char* name, hw_devi
 
 	return status;
 }
+
+
