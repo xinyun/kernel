@@ -34,7 +34,7 @@
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
 #endif
-#include <../arch/arm/mach-omap2/mux.h>
+//#include <../arch/arm/mach-omap2/mux.h>  //gaojie 20150412
 #include <linux/sensor/mma8452.h>
 #include <linux/sensor/sensor_common.h>
 
