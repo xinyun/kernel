@@ -1,1 +1,0 @@
-cmd_drivers/amlogic/../../../hardware/arm/gpu/mali/built-in.o :=  rm -f drivers/amlogic/../../../hardware/arm/gpu/mali/built-in.o; arm-linux-gnueabihf-ar rcsD drivers/amlogic/../../../hardware/arm/gpu/mali/built-in.o

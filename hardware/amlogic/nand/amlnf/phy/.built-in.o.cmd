@@ -1,1 +1,0 @@
-cmd_drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/built-in.o :=  arm-linux-gnueabihf-ld -EL    -r -o drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/built-in.o drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/amlnf_phy.o ; scripts/mod/modpost drivers/amlogic/../../../hardware/amlogic/nand/amlnf/phy/built-in.o
