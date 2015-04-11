@@ -45,12 +45,7 @@ endchoice
 
 menu "Meson development boards"
 
-source "arch/arm/mach-meson6/Kconfig.boards"
-source "arch/arm/mach-meson6tv/Kconfig.boards"
-source "arch/arm/mach-meson6tvd/Kconfig.boards"
-source "arch/arm/mach-meson8/Kconfig.boards"
 source "arch/arm/mach-meson8b/Kconfig.boards"
-source "arch/arm/mach-mesong9tv/Kconfig.boards"
 
 #if MESON_CUSTOM_BOARD_SUPPORT
 #isource "customer/meson/dt/Kconfig"
@@ -122,12 +117,7 @@ config MESON_CPU_EMULATOR
 	help
 	  Enable support for Meson serial CPU running at VLSI Emulator
 
-source "arch/arm/mach-meson6/Kconfig"
-source "arch/arm/mach-meson6tv/Kconfig"
-source "arch/arm/mach-meson6tvd/Kconfig"
-source "arch/arm/mach-meson8/Kconfig"
 source "arch/arm/mach-meson8b/Kconfig"
-source "arch/arm/mach-mesong9tv/Kconfig"
 
 config MESON_CUSTOM_BOARD_SUPPORT
 	bool "Support customer board"
