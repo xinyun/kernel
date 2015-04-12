@@ -18,7 +18,6 @@ source "drivers/amlogic/input/touchscreen/Kconfig"
 source "drivers/amlogic/input/simcard_detect/Kconfig"
 source "drivers/amlogic/input/holdkey/Kconfig"
 source "drivers/amlogic/input/call_key/Kconfig"
-source "drivers/amlogic/input/sensor/Kconfig"
 source "drivers/amlogic/input/gpio_key/Kconfig"
 source "drivers/amlogic/input/vfd/Kconfig"
 
