@@ -6,3 +6,4 @@ uImage
 *.dtb
 zImage-dtb
 ccImage.lzo
+ccImage
