@@ -1,1 +1,0 @@
-cmd_drivers/amlogic/../../../hardware/tvin/vdin/built-in.o :=  arm-linux-gnueabihf-ld -EL    -r -o drivers/amlogic/../../../hardware/tvin/vdin/built-in.o drivers/amlogic/../../../hardware/tvin/vdin/tvin_vdin.o ; scripts/mod/modpost drivers/amlogic/../../../hardware/tvin/vdin/built-in.o

@@ -1,1 +1,0 @@
-cmd_drivers/amlogic/../../../hardware/amlogic/pmu/built-in.o :=  rm -f drivers/amlogic/../../../hardware/amlogic/pmu/built-in.o; arm-linux-gnueabihf-ar rcsD drivers/amlogic/../../../hardware/amlogic/pmu/built-in.o
