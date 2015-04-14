@@ -1206,7 +1206,7 @@ dtd:
 	$(srctree)/scripts/amlogic/aml_dtd.sh $(srctree)
 
 %.dtd:
-	$(srctree)/scripts/amlogic/aml2dts.sh $(wildcard $(srctree)/arch/arm/boot/dts/amlogic/$@)
+	$(srctree)/scripts/amlogic/aml2dts.sh $(wildcard $(srctree)/arch/arm/boot/dts/$@)
 
 # Documentation targets
 # ---------------------------------------------------------------------------
