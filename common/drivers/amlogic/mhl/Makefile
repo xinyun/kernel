@@ -1,1 +1,0 @@
-obj-$(CONFIG_PANEL_IT6681)  +=  it6681/

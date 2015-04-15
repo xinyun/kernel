@@ -1,0 +1,56 @@
+if ARCH_MESON8B
+
+config CLKTREE_DEBUG
+	bool "New clock tree debug support"
+	default y
+	help
+		Create a node /sys/class/meson_clocktree/clkTree to get/set clocks
+
+config MESON_CPU_TEMP_SENSOR
+	bool "meson temperature sensor cpu interface support"
+	default n
+	help
+		/sys/class/saradc/temperature can got the celius . 
+
+config MESON_SUSPEND_FIRMWARE_BASE
+        hex
+        default 0x04f00000
+        depends on MESON_SUSPEND
+        help
+          The base address of 1MB of memory reserved for suspend firmware.
+
+config MESON_TRUSTZONE
+	bool "Enable ARM Trustzone secure extension"
+	default n
+	help
+		Enable ARM Trustzone secure extension
+config MESON8B_TH0
+	bool "th0 spec board"
+	default n
+	help
+		make th0 board different with others
+
+config MESON8B_TH8
+	bool "th8 spec board"
+	default n
+	help
+		make th8 board different with others
+
+config MESON8B_512M_TH01
+	bool "512m th01 spec board"
+	default n
+	help
+		make th0 board different with others
+
+config MESON8B_512M_TH8
+	bool "512m th8 spec board"
+	default n
+	help
+		make th8 board different with others
+config MESON8B_TH12
+        bool "m201_th12 spec board"
+        default n
+        help
+        	make th12 board different with others
+endif # ARCH_MESON8
+

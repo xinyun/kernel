@@ -1,8 +1,0 @@
-#ifdef CONFIG_AMLOGIC_MESON_CPUFREQ
-//$$ DEVICE="cpufreq-meson"
-//$$ L2 PROP_STR = "status"
-    cpufreq-meson{
-        compatible = "amlogic,cpufreq-meson";
-        status = "okay";
-    };
-#endif
