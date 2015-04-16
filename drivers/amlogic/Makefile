@@ -1,12 +1,4 @@
-##########################################
-########## Amlogic Drivers ###############
-##########################################
-
-##########################################
-## The order of directories matter.
-## Do not change.
-##########################################
-
+# The order of directories matter. Do not change.
 
 obj-y +=early_init/
 ###For Display, this is for quick logo show##
@@ -125,8 +117,8 @@ obj-$(CONFIG_AML_REG_DEBUG) += regd/
 obj-$(CONFIG_AML_WATCHDOG) += watchdog/
 
 ifneq ($(wildcard $(srctree)/../hardware/arm/gpu),)
-	obj-$(CONFIG_UMP) += ../../../hardware/arm/gpu/ump/
-	obj-$(CONFIG_MALI400) += ../../../hardware/arm/gpu/mali/
+	obj-$(CONFIG_UMP) += ../../hardware/arm/gpu/ump/
+	obj-$(CONFIG_MALI400) += ../../hardware/arm/gpu/mali/
 endif
 
 obj-$(CONFIG_AMLOGIC_ION) += ion_dev/
