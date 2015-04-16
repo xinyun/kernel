@@ -116,7 +116,7 @@ obj-$(CONFIG_AML_REG_DEBUG) += regd/
 
 obj-$(CONFIG_AML_WATCHDOG) += watchdog/
 
-ifneq ($(wildcard $(srctree)/../hardware/arm/gpu),)
+ifneq ($(wildcard $(srctree)/hardware/arm/gpu),)
 	obj-$(CONFIG_UMP) += ../../hardware/arm/gpu/ump/
 	obj-$(CONFIG_MALI400) += ../../hardware/arm/gpu/mali/
 endif
