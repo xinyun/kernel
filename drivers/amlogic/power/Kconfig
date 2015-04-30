@@ -67,8 +67,6 @@ config AML_DVFS
     help
         interface for clock adjustment and power managment
 
-#source "drivers/amlogic/power/act8xxx_pmu/Kconfig"
-source "drivers/amlogic/power/axp_power/Kconfig"
 source "drivers/amlogic/power/meson_cs_dcdc_regulator/Kconfig"
 source "drivers/amlogic/power/aml_pmu/Kconfig"
 endmenu
